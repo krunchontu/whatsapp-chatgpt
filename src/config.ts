@@ -16,6 +16,7 @@ interface IConfig {
 	// OpenAI
 	openAIModel: string;
 	openAIAPIKeys: string[];
+	openAIOrganization: string;
 	maxModelTokens: number;
 	prePrompt: string | undefined;
 
@@ -63,6 +64,7 @@ export const config: IConfig = {
 
 	openAIAPIKeys: (process.env.OPENAI_API_KEYS || process.env.OPENAI_API_KEY || "").split(",").filter((key) => !!key), // Default: []
 	openAIModel: process.env.OPENAI_GPT_MODEL || "gpt-3.5-turbo", // Default: gpt-3.5-turbo
+	openAIOrganization: process.env.OPENAI_ORGANIZATION || "", // Default: ""
 	maxModelTokens: getEnvMaxModelTokens(), // Default: 4096
 	prePrompt: process.env.PRE_PROMPT, // Default: undefined
 

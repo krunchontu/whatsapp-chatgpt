@@ -23,4 +23,5 @@ export interface IAiConfig {
 	commandsMap: {
 		[key: string]: ICommandsMap;
 	};
+	openAIOrganization?: string;
 }
