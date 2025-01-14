@@ -2,98 +2,53 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { randomUUID } from "crypto";
-import { ChatGPTAPI } from "chatgpt";
-import OpenAI from "openai";
-
+import { OpenAI } from "openai";
 import ffmpeg from "fluent-ffmpeg";
-import { blobFromSync, File } from "fetch-blob/from.js";
 import config from "../config";
 import { getConfig } from "../handlers/ai-config";
 
-export let chatgpt: ChatGPTAPI;
-
-// OpenAI Client (DALL-E)
 export let openai: OpenAI;
 
 export function initOpenAI() {
-	chatgpt = new ChatGPTAPI({
-		apiKey: getConfig("gpt", "apiKey"),
-		completionParams: {
-			model: config.openAIModel,
-			temperature: 0.7,
-			top_p: 0.9,
-			max_tokens: getConfig("gpt", "maxModelTokens")
-		}
-	});
-
-	openai = new OpenAI(
-		{
-			apiKey: getConfig("gpt", "apiKey")
-		}
-	);
+  openai = new OpenAI({
+    apiKey: getConfig("gpt", "apiKey"),
+    organization: config.openAIOrganization,
+    timeout: 10000,
+    maxRetries: 3
+  });
 }
 
 export async function transcribeOpenAI(audioBuffer: Buffer): Promise<{ text: string; language: string }> {
-	const url = config.openAIServerUrl;
-	let language = "";
+  const tempdir = os.tmpdir();
+  const oggPath = path.join(tempdir, randomUUID() + ".ogg");
+  const wavPath = path.join(tempdir, randomUUID() + ".wav");
+  
+  try {
+    fs.writeFileSync(oggPath, audioBuffer);
+    await convertOggToWav(oggPath, wavPath);
 
-	const tempdir = os.tmpdir();
-	const oggPath = path.join(tempdir, randomUUID() + ".ogg");
-	const wavFilename = randomUUID() + ".wav";
-	const wavPath = path.join(tempdir, wavFilename);
-	fs.writeFileSync(oggPath, audioBuffer);
-	try {
-		await convertOggToWav(oggPath, wavPath);
-	} catch (e) {
-		fs.unlinkSync(oggPath);
-		return {
-			text: "",
-			language
-		};
-	}
+    const transcription = await openai.audio.transcriptions.create({
+      file: fs.createReadStream(wavPath),
+      model: "whisper-1",
+      language: config.transcriptionLanguage,
+      response_format: "json"
+    });
 
-	// FormData
-	const formData = new FormData();
-	formData.append("file", new File([blobFromSync(wavPath)], wavFilename, { type: "audio/wav" }));
-	formData.append("model", "whisper-1");
-	if (config.transcriptionLanguage) {
-		formData.append("language", config.transcriptionLanguage);
-		language = config.transcriptionLanguage;
-	}
-
-	const headers = new Headers();
-	headers.append("Authorization", `Bearer ${getConfig("gpt", "apiKey")}`);
-
-	// Request options
-	const options = {
-		method: "POST",
-		body: formData,
-		headers
-	};
-
-	let response;
-	try {
-		response = await fetch(url, options);
-	} catch (e) {
-		console.error(e);
-	} finally {
-		fs.unlinkSync(oggPath);
-		fs.unlinkSync(wavPath);
-	}
-
-	if (!response || response.status != 200) {
-		console.error(response);
-		return {
-			text: "",
-			language: language
-		};
-	}
-
-	const transcription = await response.json();
-	return {
-		text: transcription.text,
-		language
-	};
+    return {
+      text: transcription.text,
+      language: config.transcriptionLanguage || ""
+    };
+  } catch (error) {
+    console.error("Transcription error:", error);
+    throw error;
+  } finally {
+    try {
+      fs.unlinkSync(oggPath);
+      fs.unlinkSync(wavPath);
+    } catch (cleanupError) {
+      console.error("Cleanup error:", cleanupError);
+    }
+  }
 }
 
 async function convertOggToWav(oggPath: string, wavPath: string): Promise<void> {
