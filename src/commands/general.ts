@@ -3,13 +3,15 @@ import { Message } from "whatsapp-web.js";
 import { config } from "../config";
 import { aiConfigTarget, aiConfigTypes, aiConfigValues, IAiConfig } from "../types/ai-config";
 import { aiConfig, getConfig } from "../handlers/ai-config";
+import { handleTranslate } from "../handlers/translate";
 
 export const GeneralModule: ICommandModule = {
 	key: "general",
 	register: (): ICommandsMap => {
 		return {
 			settings,
-			whitelist
+			whitelist,
+			translate
 		};
 	}
 };
@@ -63,6 +65,13 @@ const settings: ICommandDefinition = {
 			response += `\n${field}: ${config[field]}`;
 		});
 		message.reply(response);
+	}
+};
+
+const translate: ICommandDefinition = {
+	help: "!translate - Translate the last message in this chat to English",
+	execute: async function (message: Message) {
+		await handleTranslate(message);
 	}
 };
 
