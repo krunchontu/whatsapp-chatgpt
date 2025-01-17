@@ -11,24 +11,37 @@ const handleTranslate = async (message: Message) => {
     try {
         cli.print(`[Translate] Received translate command from ${message.from}`);
 
-        // Fetch the chat to retrieve message history
+        cli.print(`[Translate] Received translate command from ${message.from}`);
+
+        // Determine if the chat is self-noted
+        const isSelfChat = message.from === message.to;
+
+        cli.print(`[Translate] Is self-chat: ${isSelfChat}`);
+
+        // Fetch more messages to ensure we retrieve the target message
         const chat = await message.getChat();
-        const messages = await chat.fetchMessages({ limit: 2 });
+        const messages = await chat.fetchMessages({ limit: 10 });
 
-        if (messages.length < 2) {
+        cli.print(`[Translate] Number of messages fetched: ${messages.length}`);
+
+        // Filter messages based on chat type
+        let targetMessage;
+        if (isSelfChat) {
+            // In self-chat, 'fromMe' indicates user-sent messages
+            targetMessage = messages.find(msg => msg.id.fromMe === true && msg.id.id !== message.id.id);
+        } else {
+            // In regular chats, 'fromMe === false' indicates messages from others
+            targetMessage = messages.find(msg => msg.id.fromMe === false);
+        }
+
+        cli.print(`[Translate] Target message found: ${targetMessage ? "Yes" : "No"}`);
+
+        if (!targetMessage) {
             message.reply("There is no previous message to translate.");
             return;
         }
 
-        // Identify the last message sent before the !translate command
-        const lastMessage = messages.find(msg => msg.id.fromMe === false);
-
-        if (!lastMessage) {
-            message.reply("There is no previous message to translate.");
-            return;
-        }
-
-        const textToTranslate = lastMessage.body;
+        const textToTranslate = targetMessage.body;
 
         if (!textToTranslate) {
             message.reply("The previous message is empty or not text.");
@@ -69,7 +82,9 @@ const handleTranslate = async (message: Message) => {
         message.reply(response);
     } catch (error: any) {
         console.error("[Translate] An error occurred:", error);
-        message.reply("An error occurred while translating the message.");
+        cli.print(`[Translate] Error details: ${error.message}`);
+        cli.print(`[Translate] Stack trace: ${error.stack}`);
+        message.reply("An error occurred while translating the message. Please try again later.");
     }
 };
 
