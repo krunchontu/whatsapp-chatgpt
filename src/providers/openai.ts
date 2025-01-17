@@ -18,6 +18,7 @@ export function initOpenAI() {
   openai = new OpenAI({
     apiKey: apiKey,
     organization: config.openAIOrganization,
+    project: config.openAIProject,
     timeout: 10000,
     maxRetries: 3
   });
@@ -45,8 +46,8 @@ export async function transcribeOpenAI(audioBuffer: Buffer): Promise<{ text: str
     });
 
     // Updated response handling
-    if (!transcription?.text) {
-      throw new Error("No transcription text received from OpenAI");
+    if (!transcription || typeof transcription !== "object" || !transcription.text) {
+      throw new Error("Invalid transcription response from OpenAI API");
     }
 
     return {
