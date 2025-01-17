@@ -10,6 +10,9 @@ dotenv.config();
 
 // Config Interface
 interface IConfig {
+	// OpenAI Client Configuration
+	openAITimeout: number;
+	openAIMaxRetries: number;
 	// Access control
 	whitelistedPhoneNumbers: string[];
 	whitelistedEnabled: boolean;
@@ -67,6 +70,10 @@ interface IConfig {
 
 // Config
 export const config: IConfig = {
+	// OpenAI Client Configuration
+	openAITimeout: parseInt(process.env.OPENAI_TIMEOUT || "30000"),
+	openAIMaxRetries: parseInt(process.env.OPENAI_MAX_RETRIES || "5"),
+	// Access control
 	whitelistedPhoneNumbers: process.env.WHITELISTED_PHONE_NUMBERS?.split(",") || [],
 	whitelistedEnabled: getEnvBooleanWithDefault("WHITELISTED_ENABLED", false),
 	// Vision

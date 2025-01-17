@@ -19,8 +19,8 @@ export function initOpenAI() {
     apiKey: apiKey,
     organization: config.openAIOrganization,
     project: config.openAIProject,
-    timeout: 10000,
-    maxRetries: 3
+    timeout: config.openAITimeout || 30000,
+    maxRetries: config.openAIMaxRetries || 5
   });
 
 }
