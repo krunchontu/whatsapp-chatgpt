@@ -10,8 +10,7 @@ export const GeneralModule: ICommandModule = {
 	register: (): ICommandsMap => {
 		return {
 			settings,
-			whitelist,
-			translate
+			whitelist
 		};
 	}
 };

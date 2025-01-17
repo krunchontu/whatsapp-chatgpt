@@ -4,6 +4,10 @@ import { Client, Message, Events, LocalAuth } from "whatsapp-web.js";
 // Constants
 import constants from "./constants";
 
+// Command Modules
+import { GeneralModule } from "./commands/general";
+import { TranslateModule } from "./commands/translate";
+
 // CLI
 import * as cli from "./cli/ui";
 import { handleIncomingMessage } from "./handlers/message";
@@ -79,6 +83,10 @@ const start = async () => {
 
 		initAiConfig();
 		initOpenAI();
+		
+		// Register command modules
+		aiConfig.registerModule(GeneralModule);
+		aiConfig.registerModule(TranslateModule);
 	});
 
 	// WhatsApp message

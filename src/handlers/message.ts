@@ -135,6 +135,12 @@ async function handleIncomingMessage(message: Message) {
 		return;
 	}
 
+	// Translate (!translate)
+	if (startsWithIgnoreCase(messageString, "!translate")) {
+		await executeCommand("translate", "translate", message);
+		return;
+	}
+
 	// GPT (!gpt <prompt>)
 	if (startsWithIgnoreCase(messageString, config.gptPrefix)) {
 		const prompt = messageString.substring(config.gptPrefix.length + 1);
