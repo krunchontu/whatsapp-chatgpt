@@ -18,12 +18,14 @@ const handleTranslate = async (message: Message, value?: string) => {
         let translateCount = 1; // Default to 1 message
         if (value) {
             const parsedCount = parseInt(value);
-            if (isNaN(parsedCount) || parsedCount < 1) {
-                message.reply("Please provide a valid positive number after the !translate command (e.g., !translate 5).");
+            if (isNaN(parsedCount) || parsedCount < 1 || parsedCount > 50) {
+                message.reply("Please provide a valid positive number between 1 and 50 after the !translate command (e.g., !translate 5).");
                 return;
             }
             translateCount = parsedCount;
         }
+        
+        cli.print(`[Translate] Requested to translate ${translateCount} message(s)`);
 
         // Rate limiting: allow only one translate per user per minute
         const currentTime = Date.now();
@@ -48,7 +50,11 @@ const handleTranslate = async (message: Message, value?: string) => {
 
         // Fetch more messages to ensure we retrieve the target message
         const chat = await message.getChat();
-        const messages = await chat.fetchMessages({ limit: 50 });
+        // Fetch more messages than requested to account for potential skipped messages
+        const fetchLimit = Math.min(translateCount * 2 + 10, 100); // Fetch up to 100 messages
+        const messages = await chat.fetchMessages({ limit: fetchLimit });
+        
+        cli.print(`[Translate] Fetched ${messages.length} messages with limit ${fetchLimit}`);
 
         cli.print(`[Translate] Number of messages fetched: ${messages.length}`);
         cli.print(`[Translate] Current message ID: ${message.id.id}`);
@@ -67,9 +73,13 @@ const handleTranslate = async (message: Message, value?: string) => {
         // Find the index of our command in the reversed array
         const commandIndex = reversedMessages.findIndex(msg => msg.id.id === message.id.id);
         if (commandIndex === -1) {
+            cli.print(`[Translate] Error: Could not locate command message in history`);
+            cli.print(`[Translate] Command message ID: ${message.id.id}`);
             message.reply("Could not locate the translate command in message history.");
             return;
         }
+        
+        cli.print(`[Translate] Command found at position ${commandIndex} in reversed messages`);
 
         // Initialize array to store target messages
         const targetMessages: Message[] = [];
