@@ -71,7 +71,7 @@ export const config: IConfig = {
 	whitelistedEnabled: getEnvBooleanWithDefault("WHITELISTED_ENABLED", false),
 	// Vision
 	visionEnabled: getEnvBooleanWithDefault("VISION_ENABLED", true),
-	visionModel: process.env.VISION_MODEL || "gpt-4-vision-preview",
+	visionModel: process.env.VISION_MODEL || "gpt-4o",
 	visionDetailLevel: process.env.VISION_DETAIL_LEVEL || "auto",
 	// Moderation
 	moderationEnabled: getEnvBooleanWithDefault("MODERATION_ENABLED", true),
