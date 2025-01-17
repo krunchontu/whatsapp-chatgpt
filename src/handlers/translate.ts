@@ -79,7 +79,7 @@ const handleTranslate = async (message: Message, value?: string) => {
             const msg = reversedMessages[i];
 
             // Skip ALL previous translate commands (not just immediate ones)
-            if (msg.body.trim().toLowerCase().startsWith("!translate")) {
+            if (/^!translate\b/i.test(msg.body.trim())) {
                 cli.print(`[Translate] Skipping previous translate command: ${msg.body}`);
                 continue;
             }
@@ -127,8 +127,7 @@ const handleTranslate = async (message: Message, value?: string) => {
             })
             .map(msg => msg.body?.trim())
             .filter(text => {
-                // Skip empty texts and any text that starts with !translate (case insensitive)
-                return text && !text.toLowerCase().startsWith("!translate");
+                return text && !/^!translate\b/i.test(text);
             });
 
         if (textsToTranslate.length === 0) {
