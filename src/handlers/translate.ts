@@ -61,9 +61,12 @@ const handleTranslate = async (message: Message, value?: string) => {
             cli.print(`  ${index + 1}. ID: ${msg.id.id}, fromMe: ${msg.fromMe}, Body: "${msg.body}"`);
         });
 
-        // Find the index of the current translate command message
-        const translateCommandIndex = messages.findIndex(msg => msg.id.id === message.id.id);
-        if (translateCommandIndex === -1) {
+        // Reverse messages array to work from newest to oldest
+        const reversedMessages = [...messages].reverse();
+
+        // Find the index of our command in the reversed array
+        const commandIndex = reversedMessages.findIndex(msg => msg.id.id === message.id.id);
+        if (commandIndex === -1) {
             message.reply("Could not locate the translate command in message history.");
             return;
         }
@@ -71,12 +74,17 @@ const handleTranslate = async (message: Message, value?: string) => {
         // Initialize array to store target messages
         const targetMessages: Message[] = [];
 
-        // Start from the message after the translate command and collect the next N messages
-        for (let i = translateCommandIndex + 1; i < messages.length; i++) {
-            const msg = messages[i];
+        // Start from the message after the command and collect the next N messages
+        for (let i = commandIndex + 1; i < reversedMessages.length; i++) {
+            const msg = reversedMessages[i];
 
             // Skip any additional !translate commands to avoid recursion
             if (msg.body.trim().toLowerCase().startsWith("!translate")) {
+                continue;
+            }
+
+            // Skip empty messages
+            if (!msg.body.trim()) {
                 continue;
             }
 
@@ -89,7 +97,10 @@ const handleTranslate = async (message: Message, value?: string) => {
             }
         }
 
-        cli.print(`[Translate] Target messages found: ${targetMessages.length}`);
+        // Reverse target messages back to original order (oldest to newest)
+        const orderedTargetMessages = targetMessages.reverse();
+
+        cli.print(`[Translate] Target messages found: ${orderedTargetMessages.length}`);
 
         if (targetMessages.length === 0) {
             message.reply("There are no messages after the translate command to translate.");
@@ -97,7 +108,7 @@ const handleTranslate = async (message: Message, value?: string) => {
         }
 
         // Check messages for media and collect texts
-        const textsToTranslate = targetMessages
+        const textsToTranslate = orderedTargetMessages
             .filter(msg => {
                 if (msg.hasMedia) {
                     message.reply("One of the messages contains media and cannot be translated. Please send text messages to translate.");
