@@ -25,10 +25,21 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
         console.log('[DEBUG] Checking for media attachments...');
         console.log('[DEBUG] Message object:', JSON.stringify(message, null, 2));
         
-        const media = await message.downloadMedia();
-        console.log('[DEBUG] Downloaded media:', media ? 'exists' : 'null');
+        let media: MessageMedia | null = null;
+        try {
+            media = await message.downloadMedia();
+            console.log('[DEBUG] Downloaded media:', media ? 'exists' : 'null');
+            
+            if (media && !media.data) {
+                console.error('[DEBUG] Media download failed - empty data');
+                throw new Error('Failed to download media - empty data');
+            }
+        } catch (error) {
+            console.error('[DEBUG] Media download failed:', error);
+            media = null;
+        }
         
-        const hasImage = media && isImageMedia(media);
+        const hasImage = media && isImageMedia(media) && media.data.length > 0;
         console.log(`[DEBUG] Media found: ${!!media}`);
         console.log(`[DEBUG] Is image: ${hasImage}`);
         
@@ -41,8 +52,12 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 
         if (media) {
             console.log(`[DEBUG] Media type: ${media.mimetype}`);
-            console.log(`[DEBUG] Media size: ${media.data.length} bytes`);
-            console.log(`[DEBUG] First 100 chars of media data: ${media.data.substring(0, 100)}`);
+            if (media.data) {
+                console.log(`[DEBUG] Media size: ${media.data.length} bytes`);
+                console.log(`[DEBUG] First 100 chars of media data: ${media.data.substring(0, 100)}`);
+            } else {
+                console.error('[DEBUG] Media has no data');
+            }
         }
 
         // Prompt Moderation
@@ -83,6 +98,9 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
         if (hasImage) {
             console.log('[DEBUG] Processing attached image...');
             try {
+                if (!media?.data) {
+                    throw new Error('No media data available');
+                }
                 const base64Image = await convertMediaToBase64(media);
                 console.log('[DEBUG] Image converted to base64, length:', base64Image.length);
                 
