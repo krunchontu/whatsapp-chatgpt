@@ -26,11 +26,14 @@ export function initOpenAI() {
 }
 
 export type ChatCompletionMessageParam = {
-  role: 'system' | 'user' | 'assistant' | 'developer';
+  role: 'system' | 'user' | 'assistant';
   content: string | Array<{
     type: 'text' | 'image_url';
     text?: string;
-    image_url?: { url: string };
+    image_url?: {
+      url: string;
+      detail?: 'low' | 'high' | 'auto';
+    };
   }>;
   name?: string;
 };

@@ -13,6 +13,10 @@ interface IConfig {
 	// Access control
 	whitelistedPhoneNumbers: string[];
 	whitelistedEnabled: boolean;
+	// Vision
+	visionEnabled: boolean;
+	visionModel: string;
+	visionDetailLevel: 'low' | 'high' | 'auto';
 	// OpenAI
 	openAIModel: string;
 	openAIAPIKeys: string[];
@@ -65,6 +69,10 @@ interface IConfig {
 export const config: IConfig = {
 	whitelistedPhoneNumbers: process.env.WHITELISTED_PHONE_NUMBERS?.split(",") || [],
 	whitelistedEnabled: getEnvBooleanWithDefault("WHITELISTED_ENABLED", false),
+	// Vision
+	visionEnabled: getEnvBooleanWithDefault("VISION_ENABLED", true),
+	visionModel: process.env.VISION_MODEL || "gpt-4-vision-preview",
+	visionDetailLevel: process.env.VISION_DETAIL_LEVEL || "auto",
 	// Moderation
 	moderationEnabled: getEnvBooleanWithDefault("MODERATION_ENABLED", true),
 	customModerationParams: {

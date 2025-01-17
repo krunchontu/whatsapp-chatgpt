@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
 import { Message, MessageMedia } from "whatsapp-web.js";
+import { convertMediaToBase64, isImageMedia } from "../utils";
 import { chatCompletion } from "../providers/openai";
 import * as cli from "../cli/ui";
 import config from "../config";
@@ -32,6 +33,10 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 
         const start = Date.now();
 
+        // Check for media attachments
+        const media = await message.downloadMedia();
+        const hasImage = media && isImageMedia(media);
+
         // Build messages array
         const messages = [];
         
@@ -43,10 +48,27 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
             });
         }
 
-        // Add user message
+        // Add user message with optional image
+        const content: Array<any> = [];
+        
+        if (prompt) {
+            content.push({ type: 'text', text: prompt });
+        }
+
+        if (hasImage) {
+            const base64Image = await convertMediaToBase64(media);
+            content.push({
+                type: 'image_url',
+                image_url: {
+                    url: base64Image,
+                    detail: 'auto' // Can be 'low', 'high', or 'auto'
+                }
+            });
+        }
+
         messages.push({
             role: 'user',
-            content: prompt
+            content: content
         });
 
         // Get response from OpenAI
