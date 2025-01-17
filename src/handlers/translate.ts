@@ -17,7 +17,7 @@ const handleTranslate = async (message: Message) => {
         // Rate limiting: allow only one translate per user per minute
         const currentTime = Date.now();
         const lastUsed = rateLimitMap[userId] || 0;
-        const cooldown = 60 * 1000; // 1 minute
+        const cooldown = 5 * 1000; // 5 seconds
 
         if (currentTime - lastUsed < cooldown) {
             const secondsLeft = Math.ceil((cooldown - (currentTime - lastUsed)) / 1000);
