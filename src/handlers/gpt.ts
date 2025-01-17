@@ -26,17 +26,21 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
         console.log('[DEBUG] Message object:', JSON.stringify(message, null, 2));
         
         let media: MessageMedia | null = null;
-        try {
-            media = await message.downloadMedia();
-            console.log('[DEBUG] Downloaded media:', media ? 'exists' : 'null');
-            
-            if (media && !media.data) {
-                console.error('[DEBUG] Media download failed - empty data');
-                throw new Error('Failed to download media - empty data');
+        if (message.hasMedia) {
+            try {
+                media = await message.downloadMedia();
+                console.log('[DEBUG] Downloaded media:', media ? 'exists' : 'null');
+                
+                if (!media?.data) {
+                    console.error('[DEBUG] Media download failed - empty data');
+                    throw new Error('Failed to download media - empty data');
+                }
+            } catch (error) {
+                console.error('[DEBUG] Media download failed:', error);
+                media = null;
             }
-        } catch (error) {
-            console.error('[DEBUG] Media download failed:', error);
-            media = null;
+        } else {
+            console.log('[DEBUG] No media attached to message');
         }
         
         const hasImage = media && isImageMedia(media) && media.data.length > 0;
@@ -44,9 +48,16 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
         console.log(`[DEBUG] Is image: ${hasImage}`);
         
         // Check for image URLs in the message
-        const imageUrls = message.links?.filter(link => 
-            link.link.match(/\.(jpeg|jpg|gif|png|webp)$/i)
-        ).map(link => link.link) || [];
+        const imageUrls = message.links
+            ?.filter(link => {
+                try {
+                    const url = new URL(link.link);
+                    return /\.(jpeg|jpg|gif|png|webp|webm)$/i.test(url.pathname);
+                } catch {
+                    return false;
+                }
+            })
+            .map(link => link.link) || [];
         
         console.log('[DEBUG] Found image URLs:', imageUrls);
 
