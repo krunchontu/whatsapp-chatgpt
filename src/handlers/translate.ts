@@ -39,9 +39,12 @@ const handleTranslate = async (message: Message) => {
 
         // Fetch more messages to ensure we retrieve the target message
         const chat = await message.getChat();
-        const messages = await chat.fetchMessages({ limit: 10 });
+        const messages = await chat.fetchMessages({ limit: 50 });
 
         cli.print(`[Translate] Number of messages fetched: ${messages.length}`);
+        cli.print(`[Translate] Current message ID: ${message.id.id}`);
+        cli.print(`[Translate] Current message fromMe: ${message.fromMe}`);
+        cli.print(`[Translate] Current message body: "${message.body}"`);
 
         // Log all fetched messages for debugging
         cli.print(`[Translate] Fetched ${messages.length} messages:`);
@@ -54,10 +57,17 @@ const handleTranslate = async (message: Message) => {
 
         if (isSelfChat) {
             // In self-chat, find the most recent message sent by the user excluding the current command
-            targetMessage = messages.find(msg => msg.fromMe === true && msg.id.id !== message.id.id);
+            targetMessage = messages.find(msg => 
+                msg.fromMe === true && 
+                msg.id.id !== message.id.id &&
+                msg.body.trim() !== "!translate"
+            );
         } else {
             // In regular chats, find the most recent message not sent by the bot
-            targetMessage = messages.find(msg => msg.fromMe === false);
+            targetMessage = messages.find(msg => 
+                msg.fromMe === false &&
+                msg.body.trim() !== "!translate"
+            );
         }
 
         cli.print(`[Translate] Target message found: ${targetMessage ? "Yes" : "No"}`);
@@ -67,16 +77,21 @@ const handleTranslate = async (message: Message) => {
             return;
         }
 
-        const textToTranslate = targetMessage.body;
-
         // Check if the message has media
         if (targetMessage.hasMedia) {
             message.reply("The previous message contains media and cannot be translated. Please send a text message to translate.");
             return;
         }
 
+        const textToTranslate = targetMessage.body?.trim();
         if (!textToTranslate) {
             message.reply("The previous message is empty or not text.");
+            return;
+        }
+
+        // Skip if the message is just the translate command
+        if (textToTranslate === "!translate") {
+            message.reply("Please send a message before using the translate command.");
             return;
         }
 
@@ -114,14 +129,23 @@ const handleTranslate = async (message: Message) => {
         message.reply(response);
     } catch (error: any) {
         // Differentiate between different error types
-        if (error.response && error.response.status === 429) {
-            message.reply("Translation service is currently overloaded. Please try again later.");
-        } else if (error.response && error.response.status >= 500) {
-            message.reply("Translation service is experiencing issues. Please try again later.");
+        if (error.response) {
+            cli.print(`[Translate] API Error Response: ${JSON.stringify(error.response.data)}`);
+            cli.print(`[Translate] API Status: ${error.response.status}`);
+            cli.print(`[Translate] API Headers: ${JSON.stringify(error.response.headers)}`);
+            
+            if (error.response.status === 429) {
+                message.reply("Translation service is currently overloaded. Please try again later.");
+            } else if (error.response.status >= 500) {
+                message.reply("Translation service is experiencing issues. Please try again later.");
+            } else {
+                message.reply("An error occurred with the translation service. Please try again later.");
+            }
         } else {
             console.error("[Translate] An error occurred:", error);
             cli.print(`[Translate] Error details: ${error.message}`);
             cli.print(`[Translate] Stack trace: ${error.stack}`);
+            cli.print(`[Translate] Full error: ${JSON.stringify(error)}`);
             message.reply("An unexpected error occurred while translating the message. Please try again later.");
         }
     }
