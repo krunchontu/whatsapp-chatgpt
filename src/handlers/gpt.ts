@@ -32,6 +32,13 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
         console.log(`[DEBUG] Media found: ${!!media}`);
         console.log(`[DEBUG] Is image: ${hasImage}`);
         
+        // Check for image URLs in the message
+        const imageUrls = message.links?.filter(link => 
+            link.link.match(/\.(jpeg|jpg|gif|png|webp)$/i)
+        ).map(link => link.link) || [];
+        
+        console.log('[DEBUG] Found image URLs:', imageUrls);
+
         if (media) {
             console.log(`[DEBUG] Media type: ${media.mimetype}`);
             console.log(`[DEBUG] Media size: ${media.data.length} bytes`);
@@ -72,8 +79,9 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
             content.push({ type: 'text', text: prompt });
         }
 
+        // Handle attached image
         if (hasImage) {
-            console.log('[DEBUG] Processing image...');
+            console.log('[DEBUG] Processing attached image...');
             try {
                 const base64Image = await convertMediaToBase64(media);
                 console.log('[DEBUG] Image converted to base64, length:', base64Image.length);
@@ -92,6 +100,21 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
             }
         }
 
+        // Handle image URLs
+        if (imageUrls.length > 0) {
+            console.log('[DEBUG] Processing image URLs...');
+            for (const url of imageUrls) {
+                content.push({
+                    type: 'image_url',
+                    image_url: {
+                        url: url,
+                        detail: config.visionDetailLevel
+                    }
+                });
+                console.log('[DEBUG] Added image URL to content:', url);
+            }
+        }
+
         messages.push({
             role: 'user',
             content: content
@@ -102,7 +125,7 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
         // Get response from OpenAI
         console.log('[DEBUG] Sending request to OpenAI...');
         const response = await chatCompletion(messages, {
-            model: config.visionEnabled && hasImage ? config.visionModel : config.openAIModel,
+            model: config.visionEnabled && (hasImage || imageUrls.length > 0) ? config.visionModel : config.openAIModel,
             temperature: 0.7
         });
 
