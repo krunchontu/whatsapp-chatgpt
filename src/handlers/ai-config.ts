@@ -13,7 +13,7 @@ import config from "../config";
 
 let aiConfig: IAiConfig = {
 	dalle: {
-		size: dalleImageSize["512x512"]
+		size: dalleImageSize["1024x1024"]
 	},
 	// chatgpt: {}
 	commandsMap: {}
@@ -24,6 +24,13 @@ const initAiConfig = () => {
 	[ChatModule, GeneralModule, GptModule, TranscriptionModule, TTSModule, StableDiffusionModule].forEach((module) => {
 		aiConfig.commandsMap[module.key] = module.register();
 	});
+	
+	// Ensure size compatibility based on the model
+	if (aiConfig.dalle.model === "dall-e-3") {
+		aiConfig.dalle.size = dalleImageSize["1024x1024"];
+	} else if (aiConfig.dalle.model === "dall-e-2") {
+		aiConfig.dalle.size = dalleImageSize["512x512"];
+	}
 };
 
 const handleMessageAIConfig = async (message: Message, prompt: any) => {

@@ -29,7 +29,7 @@ const handleMessageDALLE = async (message: any, prompt: any) => {
             n: 1,
             size: aiConfig.dalle.size as CreateImageRequestSizeEnum,
             response_format: "url",
-            model: "dall-e-3"
+            model: aiConfig.dalle.model || "dall-e-3"
         });
 
         const end = Date.now() - start;
