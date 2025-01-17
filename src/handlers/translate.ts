@@ -10,9 +10,20 @@ import * as cli from "../cli/ui";
 // Simple in-memory rate limiter (reset every minute)
 const rateLimitMap: { [key: string]: number } = {}; // Maps user ID to timestamp
 
-const handleTranslate = async (message: Message) => {
+const handleTranslate = async (message: Message, value?: string) => {
     try {
         const userId = message.from;
+
+        // Parse the optional number parameter
+        let translateCount = 1; // Default to 1 message
+        if (value) {
+            const parsedCount = parseInt(value);
+            if (isNaN(parsedCount) || parsedCount < 1) {
+                message.reply("Please provide a valid positive number after the !translate command (e.g., !translate 5).");
+                return;
+            }
+            translateCount = parsedCount;
+        }
 
         // Rate limiting: allow only one translate per user per minute
         const currentTime = Date.now();
@@ -50,52 +61,56 @@ const handleTranslate = async (message: Message) => {
             cli.print(`  ${index + 1}. ID: ${msg.id.id}, fromMe: ${msg.fromMe}, Body: "${msg.body}"`);
         });
 
-        // Initialize targetMessage as null
-        let targetMessage: Message | undefined = undefined;
+        // Initialize array to store target messages
+        const targetMessages: Message[] = [];
 
         // Iterate through fetched messages starting from the most recent message
         for (let i = messages.length - 1; i >= 0; i--) {
             const msg = messages[i];
 
             // Skip any additional !translate commands to avoid recursion
-            if (msg.body.trim().toLowerCase() === "!translate") {
+            if (msg.body.trim().toLowerCase().startsWith("!translate")) {
                 continue;
             }
 
-            // Assign the first non-command message as the target
-            targetMessage = msg;
-            break;
+            // Add message to target messages
+            targetMessages.push(msg);
+
+            // Stop if we have enough messages
+            if (targetMessages.length >= translateCount) {
+                break;
+            }
         }
 
-        cli.print(`[Translate] Target message found: ${targetMessage ? "Yes" : "No"}`);
+        cli.print(`[Translate] Target messages found: ${targetMessages.length}`);
 
-        if (!targetMessage) {
+        if (targetMessages.length === 0) {
             message.reply("There is no previous message to translate.");
             return;
         }
 
-        // Check if the message has media
-        if (targetMessage.hasMedia) {
-            message.reply("The previous message contains media and cannot be translated. Please send a text message to translate.");
+        // Check messages for media and collect texts
+        const textsToTranslate = targetMessages
+            .filter(msg => {
+                if (msg.hasMedia) {
+                    message.reply("One of the messages contains media and cannot be translated. Please send text messages to translate.");
+                    return false;
+                }
+                return true;
+            })
+            .map(msg => msg.body?.trim())
+            .filter(text => text && !text.toLowerCase().startsWith("!translate"));
+
+        if (textsToTranslate.length === 0) {
+            message.reply("The previous messages are empty or not text.");
             return;
         }
 
-        const textToTranslate = targetMessage.body?.trim();
-        if (!textToTranslate) {
-            message.reply("The previous message is empty or not text.");
-            return;
-        }
-
-        // Skip if the message is just the translate command
-        if (textToTranslate.toLowerCase() === "!translate") {
-            message.reply("Please send a message before using the translate command.");
-            return;
-        }
-
-        cli.print(`[Translate] Translating text: ${textToTranslate}`);
+        cli.print(`[Translate] Translating ${textsToTranslate.length} messages`);
 
         // Construct the prompt for translation
-        const prompt = `Translate the following text to English:\n\n${textToTranslate}`;
+        const prompt = `Translate the following ${textsToTranslate.length} messages to English:\n\n` +
+            textsToTranslate.map((text, index) => `${index + 1}. ${text}`).join("\n");
 
         // Request translation from OpenAI
         const response = await chatCompletion(
@@ -122,8 +137,13 @@ const handleTranslate = async (message: Message) => {
 
         cli.print(`[Translate] Translated text: ${response}`);
 
-        // Reply with the translated text
-        message.reply(response);
+        // Reply with the translated text(s)
+        const translatedMessages = response.split("\n");
+        const replyText = translatedMessages
+            .map((msg, index) => `Message ${index + 1}:\n${msg}`)
+            .join("\n\n");
+            
+        message.reply(replyText);
     } catch (error: any) {
         // Differentiate between different error types
         if (error.response) {
