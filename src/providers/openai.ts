@@ -3,13 +3,11 @@ import os from "os";
 import path from "path";
 import { randomUUID } from "crypto";
 import { OpenAI } from "openai";
-import { ChatGPTAPI } from 'chatgpt';
 import ffmpeg from "fluent-ffmpeg";
 import config from "../config";
 import { getConfig } from "../handlers/ai-config";
 
 export let openai: OpenAI;
-export let chatgpt: ChatGPTAPI;
 
 export function initOpenAI() {
   const apiKey = getConfig("gpt", "apiKey");
@@ -25,15 +23,46 @@ export function initOpenAI() {
     maxRetries: 3
   });
 
-  // Initialize ChatGPT client
-  chatgpt = new ChatGPTAPI({
-    apiKey: apiKey,
-    completionParams: {
-      model: config.openAIModel,
-      temperature: 0.7,
-      max_tokens: config.maxModelTokens
+}
+
+export type ChatCompletionMessageParam = {
+  role: 'system' | 'user' | 'assistant' | 'developer';
+  content: string | Array<{
+    type: 'text' | 'image_url';
+    text?: string;
+    image_url?: { url: string };
+  }>;
+  name?: string;
+};
+
+export async function chatCompletion(messages: ChatCompletionMessageParam[], options: {
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+  responseFormat?: 'text' | 'json_object';
+} = {}): Promise<string> {
+  try {
+    if (!openai) {
+      initOpenAI();
     }
-  });
+
+    const completion = await openai.chat.completions.create({
+      model: options.model || config.openAIModel,
+      messages: messages,
+      temperature: options.temperature || 0.7,
+      max_tokens: options.maxTokens || config.maxModelTokens,
+      response_format: options.responseFormat ? { type: options.responseFormat } : undefined
+    });
+
+    if (!completion.choices[0]?.message?.content) {
+      throw new Error("No content in completion response");
+    }
+
+    return completion.choices[0].message.content;
+  } catch (error) {
+    console.error(`[OPENAI] Error in chat completion: ${error.message}`);
+    throw error;
+  }
 }
 
 export async function transcribeOpenAI(audioBuffer: Buffer): Promise<{ text: string; language: string }> {
