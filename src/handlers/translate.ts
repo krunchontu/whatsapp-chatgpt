@@ -53,8 +53,8 @@ const handleTranslate = async (message: Message) => {
         // Initialize targetMessage as null
         let targetMessage: Message | undefined = undefined;
 
-        // Iterate through fetched messages starting from the message immediately before the command
-        for (let i = 1; i < messages.length; i++) {
+        // Iterate through fetched messages starting from the most recent message
+        for (let i = messages.length - 1; i >= 0; i--) {
             const msg = messages[i];
 
             // Skip any additional !translate commands to avoid recursion
