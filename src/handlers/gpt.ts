@@ -3,11 +3,9 @@ import fs from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
 import { Message, MessageMedia } from "whatsapp-web.js";
-import { chatgpt } from "../providers/openai";
+import { chatCompletion } from "../providers/openai";
 import * as cli from "../cli/ui";
 import config from "../config";
-
-import { ChatMessage } from "chatgpt";
 
 // TTS
 import { ttsRequest as speechTTSRequest } from "../providers/speech";
@@ -18,78 +16,62 @@ import { TTSMode } from "../types/tts-mode";
 import { moderateIncomingPrompt } from "./moderation";
 import { aiConfig, getConfig } from "./ai-config";
 
-// Mapping from number to last conversation id
-const conversations = {};
-
 const handleMessageGPT = async (message: Message, prompt: string) => {
-	try {
-		// Get last conversation
-		const lastConversationId = conversations[message.from];
+    try {
+        cli.print(`[GPT] Received prompt from ${message.from}: ${prompt}`);
 
-		cli.print(`[GPT] Received prompt from ${message.from}: ${prompt}`);
+        // Prompt Moderation
+        if (config.promptModerationEnabled) {
+            try {
+                await moderateIncomingPrompt(prompt);
+            } catch (error: any) {
+                message.reply(error.message);
+                return;
+            }
+        }
 
-		// Prompt Moderation
-		if (config.promptModerationEnabled) {
-			try {
-				await moderateIncomingPrompt(prompt);
-			} catch (error: any) {
-				message.reply(error.message);
-				return;
-			}
-		}
+        const start = Date.now();
 
-		const start = Date.now();
+        // Build messages array
+        const messages = [];
+        
+        // Add system prompt if configured
+        if (config.prePrompt?.trim()) {
+            messages.push({
+                role: 'system',
+                content: config.prePrompt
+            });
+        }
 
-		// Check if we have a conversation with the user
-		let response: ChatMessage;
-		if (lastConversationId) {
-			// Handle message with previous conversation
-			response = await chatgpt.sendMessage(prompt, {
-				parentMessageId: lastConversationId
-			});
-		} else {
-			let promptBuilder = "";
+        // Add user message
+        messages.push({
+            role: 'user',
+            content: prompt
+        });
 
-			// Pre prompt
-			if (config.prePrompt != null && config.prePrompt.trim() != "") {
-				promptBuilder += config.prePrompt + "\n\n";
-				promptBuilder += prompt + "\n\n";
-			}
+        // Get response from OpenAI
+        const response = await chatCompletion(messages, {
+            model: config.openAIModel,
+            temperature: 0.7
+        });
 
-			// Handle message with new conversation
-			response = await chatgpt.sendMessage(promptBuilder);
+        const end = Date.now() - start;
 
-			cli.print(`[GPT] New conversation for ${message.from} (ID: ${response.id})`);
-		}
-		
-		// Set conversation id
-		conversations[message.from] = response.id;
+        cli.print(`[GPT] Answer to ${message.from}: ${response}  | OpenAI request took ${end}ms)`);
 
-		const end = Date.now() - start;
+        // TTS reply (Default: disabled)
+        if (getConfig("tts", "enabled")) {
+            sendVoiceMessageReply(message, response);
+            message.reply(response);
+            return;
+        }
 
-		cli.print(`[GPT] Answer to ${message.from}: ${response.text}  | OpenAI request took ${end}ms)`);
-
-		// TTS reply (Default: disabled)
-		if (getConfig("tts", "enabled")) {
-			sendVoiceMessageReply(message, response.text);
-			message.reply(response.text);
-			return;
-		}
-
-		// Default: Text reply
-		message.reply(response.text);
-	} catch (error: any) {
-		console.error("An error occured", error);
-		message.reply("An error occured, please contact the administrator. (" + error.message + ")");
-	}
-};
-
-const handleDeleteConversation = async (message: Message) => {
-	// Delete conversation
-	delete conversations[message.from];
-
-	// Reply
-	message.reply("Conversation context was resetted!");
+        // Default: Text reply
+        message.reply(response);
+    } catch (error: any) {
+        console.error("An error occurred", error);
+        message.reply("An error occurred, please contact the administrator. (" + error.message + ")");
+    }
 };
 
 async function sendVoiceMessageReply(message: Message, gptTextResponse: string) {
