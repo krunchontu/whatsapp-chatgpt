@@ -10,8 +10,13 @@ import { getConfig } from "../handlers/ai-config";
 export let openai: OpenAI;
 
 export function initOpenAI() {
+  const apiKey = getConfig("gpt", "apiKey");
+  if (!apiKey) {
+    throw new Error("OpenAI API key is not configured");
+  }
+
   openai = new OpenAI({
-    apiKey: getConfig("gpt", "apiKey"),
+    apiKey: apiKey,
     organization: config.openAIOrganization,
     timeout: 10000,
     maxRetries: 3
@@ -24,6 +29,11 @@ export async function transcribeOpenAI(audioBuffer: Buffer): Promise<{ text: str
   const wavPath = path.join(tempdir, randomUUID() + ".wav");
   
   try {
+    // Ensure OpenAI is initialized
+    if (!openai) {
+      initOpenAI();
+    }
+
     fs.writeFileSync(oggPath, audioBuffer);
     await convertOggToWav(oggPath, wavPath);
 
@@ -34,13 +44,18 @@ export async function transcribeOpenAI(audioBuffer: Buffer): Promise<{ text: str
       response_format: "json"
     });
 
+    // Updated response handling
+    if (!transcription?.text) {
+      throw new Error("No transcription text received from OpenAI");
+    }
+
     return {
       text: transcription.text,
       language: config.transcriptionLanguage || ""
     };
   } catch (error) {
     console.error("Transcription error:", error);
-    throw error;
+    throw new Error(`Transcription failed: ${error.message}`);
   } finally {
     try {
       fs.unlinkSync(oggPath);
