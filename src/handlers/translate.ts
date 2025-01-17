@@ -51,7 +51,8 @@ const handleTranslate = async (message: Message, value?: string) => {
         // Fetch more messages to ensure we retrieve the target message
         const chat = await message.getChat();
         // Fetch more messages than requested to account for potential skipped messages
-        const fetchLimit = Math.min(translateCount * 2 + 10, 100); // Fetch up to 100 messages
+        const fetchLimit = Math.min(Math.max(translateCount * 2 + 10, 50), 100); // Ensure at least 50 messages are fetched, up to 100
+        cli.print(`[Translate] Fetch limit set to ${fetchLimit} messages`);
         const messages = await chat.fetchMessages({ limit: fetchLimit });
         
         cli.print(`[Translate] Fetched ${messages.length} messages with limit ${fetchLimit}`);
