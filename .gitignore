@@ -594,3 +594,6 @@ MigrationBackup/
 .wwebjs_cache
 .session
 .aider*
+.env
+.env.example
+.aider.chat.history.md
