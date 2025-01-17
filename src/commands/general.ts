@@ -67,17 +67,6 @@ const settings: ICommandDefinition = {
 	}
 };
 
-const translate: ICommandDefinition = {
-    help: "!translate - Translate the last message in this chat to English",
-    execute: async function (message: Message) {
-        try {
-            await handleTranslate(message);
-        } catch (error: any) {
-            console.error("[Translate Command] Error:", error);
-            message.reply("Failed to process translation command. Please try again.");
-        }
-    }
-};
 
 const whitelist: ICommandDefinition = {
 	help: "<value> - Set whitelisted phone numbers",

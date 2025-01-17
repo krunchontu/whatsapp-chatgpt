@@ -84,9 +84,7 @@ const start = async () => {
 		initAiConfig();
 		initOpenAI();
 		
-		// Register command modules
-		aiConfig.registerModule(GeneralModule);
-		aiConfig.registerModule(TranslateModule);
+		// Command modules are registered in initAiConfig()
 	});
 
 	// WhatsApp message
