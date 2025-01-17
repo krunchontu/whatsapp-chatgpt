@@ -1,7 +1,6 @@
 import { MessageMedia } from "whatsapp-web.js";
 import { openai } from "../providers/openai";
 import { aiConfig } from "../handlers/ai-config";
-import OpenAI from "openai";
 import config from "../config";
 import * as cli from "../cli/ui";
 
@@ -9,46 +8,53 @@ import * as cli from "../cli/ui";
 import { moderateIncomingPrompt } from "./moderation";
 
 const handleMessageDALLE = async (message: any, prompt: any) => {
-	try {
-		const start = Date.now();
+    try {
+        const start = Date.now();
 
-		cli.print(`[DALL-E] Received prompt from ${message.from}: ${prompt}`);
+        cli.print(`[DALL-E] Received prompt from ${message.from}: ${prompt}`);
 
-		// Prompt Moderation
-		if (config.promptModerationEnabled) {
-			try {
-				await moderateIncomingPrompt(prompt);
-			} catch (error: any) {
-				message.reply(error.message);
-				return;
-			}
-		}
+        // Prompt Moderation
+        if (config.promptModerationEnabled) {
+            try {
+                await moderateIncomingPrompt(prompt);
+            } catch (error: any) {
+                message.reply(error.message);
+                return;
+            }
+        }
 
-		// Send the prompt to the API
-		const response = await openai.images.generate({
-			prompt: prompt,
-			n: 1,
-			size: aiConfig.dalle.size as CreateImageRequestSizeEnum,
-			response_format: "b64_json"
-		});
+        // Send the prompt to the API
+        const response = await openai.images.generate({
+            prompt: prompt,
+            n: 1,
+            size: aiConfig.dalle.size as CreateImageRequestSizeEnum,
+            response_format: "url",
+            model: "dall-e-3"
+        });
 
-		const end = Date.now() - start;
+        const end = Date.now() - start;
 
-		const base64 = response.data?.data?.[0]?.b64_json;
-		if (!base64) {
-			console.error('Unexpected OpenAI response:', response.data);
-			throw new Error('No image data returned from OpenAI.');
-		}
+        // Validate the response structure
+        if (!response.data || !response.data.data || response.data.data.length === 0) {
+            console.error('Unexpected OpenAI response:', response.data);
+            throw new Error('No image data returned from OpenAI.');
+        }
 
-		const image = new MessageMedia("image/jpeg", base64, "image.jpg");
+        // Extract the image URL
+        const imageUrl = response.data.data[0].url;
 
-		cli.print(`[DALL-E] Answer to ${message.from} | OpenAI request took ${end}ms`);
+        // Create MessageMedia from the URL
+        const image = await MessageMedia.fromUrl(imageUrl, {
+            unsafeMime: true
+        });
 
-		message.reply(image);
-	} catch (error: any) {
-		console.error("An error occured", error);
-		message.reply("An error occured, please contact the administrator. (" + error.message + ")");
-	}
+        cli.print(`[DALL-E] Answer to ${message.from} | OpenAI request took ${end}ms`);
+
+        message.reply(image);
+    } catch (error: any) {
+        console.error("An error occurred in handleMessageDALLE:", error);
+        message.reply("An error occurred, please contact the administrator. (" + error.message + ")");
+    }
 };
 
 export { handleMessageDALLE };
