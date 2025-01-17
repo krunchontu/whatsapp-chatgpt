@@ -55,19 +55,18 @@ const handleTranslate = async (message: Message) => {
         // Initialize targetMessage as null
         let targetMessage: Message | undefined = undefined;
 
-        if (isSelfChat) {
-            // In self-chat, find the most recent message sent by the user excluding the current command
-            targetMessage = messages.find(msg => 
-                msg.fromMe === true && 
-                msg.id.id !== message.id.id &&
-                msg.body.trim() !== "!translate"
-            );
-        } else {
-            // In regular chats, find the most recent message not sent by the bot
-            targetMessage = messages.find(msg => 
-                msg.fromMe === false &&
-                msg.body.trim() !== "!translate"
-            );
+        // Iterate through fetched messages starting from the message immediately before the command
+        for (let i = 1; i < messages.length; i++) {
+            const msg = messages[i];
+
+            // Skip any additional !translate commands to avoid recursion
+            if (msg.body.trim().toLowerCase() === "!translate") {
+                continue;
+            }
+
+            // Assign the first non-command message as the target
+            targetMessage = msg;
+            break;
         }
 
         cli.print(`[Translate] Target message found: ${targetMessage ? "Yes" : "No"}`);
@@ -90,7 +89,7 @@ const handleTranslate = async (message: Message) => {
         }
 
         // Skip if the message is just the translate command
-        if (textToTranslate === "!translate") {
+        if (textToTranslate.toLowerCase() === "!translate") {
             message.reply("Please send a message before using the translate command.");
             return;
         }
