@@ -23,14 +23,19 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 
         // Check for media attachments
         console.log('[DEBUG] Checking for media attachments...');
-        const media = await message.downloadMedia();
-        const hasImage = media && isImageMedia(media);
+        console.log('[DEBUG] Message object:', JSON.stringify(message, null, 2));
         
+        const media = await message.downloadMedia();
+        console.log('[DEBUG] Downloaded media:', media ? 'exists' : 'null');
+        
+        const hasImage = media && isImageMedia(media);
         console.log(`[DEBUG] Media found: ${!!media}`);
         console.log(`[DEBUG] Is image: ${hasImage}`);
+        
         if (media) {
             console.log(`[DEBUG] Media type: ${media.mimetype}`);
             console.log(`[DEBUG] Media size: ${media.data.length} bytes`);
+            console.log(`[DEBUG] First 100 chars of media data: ${media.data.substring(0, 100)}`);
         }
 
         // Prompt Moderation
