@@ -24,6 +24,7 @@ const handleTranslate = async (message: Message, value?: string) => {
             }
             translateCount = parsedCount;
         }
+        cli.print(`[Translate] Parsed translate count: ${translateCount}`);
         
         cli.print(`[Translate] Requested to translate ${translateCount} message(s)`);
 
