@@ -21,11 +21,25 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
     try {
         cli.print(`[GPT] Received prompt from ${message.from}: ${prompt}`);
 
+        // Check for media attachments
+        console.log('[DEBUG] Checking for media attachments...');
+        const media = await message.downloadMedia();
+        const hasImage = media && isImageMedia(media);
+        
+        console.log(`[DEBUG] Media found: ${!!media}`);
+        console.log(`[DEBUG] Is image: ${hasImage}`);
+        if (media) {
+            console.log(`[DEBUG] Media type: ${media.mimetype}`);
+            console.log(`[DEBUG] Media size: ${media.data.length} bytes`);
+        }
+
         // Prompt Moderation
         if (config.promptModerationEnabled) {
             try {
+                console.log('[DEBUG] Running prompt moderation...');
                 await moderateIncomingPrompt(prompt);
             } catch (error: any) {
+                console.error('[DEBUG] Prompt moderation failed:', error);
                 message.reply(error.message);
                 return;
             }
@@ -33,15 +47,12 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 
         const start = Date.now();
 
-        // Check for media attachments
-        const media = await message.downloadMedia();
-        const hasImage = media && isImageMedia(media);
-
         // Build messages array
         const messages = [];
         
         // Add system prompt if configured
         if (config.prePrompt?.trim()) {
+            console.log('[DEBUG] Adding system prompt');
             messages.push({
                 role: 'system',
                 content: config.prePrompt
@@ -52,18 +63,28 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
         const content: Array<any> = [];
         
         if (prompt) {
+            console.log('[DEBUG] Adding text prompt:', prompt);
             content.push({ type: 'text', text: prompt });
         }
 
         if (hasImage) {
-            const base64Image = await convertMediaToBase64(media);
-            content.push({
-                type: 'image_url',
-                image_url: {
-                    url: base64Image,
-                    detail: 'auto' // Can be 'low', 'high', or 'auto'
-                }
-            });
+            console.log('[DEBUG] Processing image...');
+            try {
+                const base64Image = await convertMediaToBase64(media);
+                console.log('[DEBUG] Image converted to base64, length:', base64Image.length);
+                
+                content.push({
+                    type: 'image_url',
+                    image_url: {
+                        url: base64Image,
+                        detail: config.visionDetailLevel
+                    }
+                });
+                console.log('[DEBUG] Image added to content with detail level:', config.visionDetailLevel);
+            } catch (error) {
+                console.error('[DEBUG] Image processing failed:', error);
+                throw new Error('Failed to process image');
+            }
         }
 
         messages.push({
@@ -71,27 +92,33 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
             content: content
         });
 
+        console.log('[DEBUG] Final messages array:', JSON.stringify(messages, null, 2));
+
         // Get response from OpenAI
+        console.log('[DEBUG] Sending request to OpenAI...');
         const response = await chatCompletion(messages, {
-            model: config.openAIModel,
+            model: config.visionEnabled && hasImage ? config.visionModel : config.openAIModel,
             temperature: 0.7
         });
 
         const end = Date.now() - start;
+        console.log(`[DEBUG] OpenAI response received in ${end}ms`);
 
         cli.print(`[GPT] Answer to ${message.from}: ${response}  | OpenAI request took ${end}ms)`);
 
         // TTS reply (Default: disabled)
         if (getConfig("tts", "enabled")) {
+            console.log('[DEBUG] Sending TTS reply...');
             sendVoiceMessageReply(message, response);
             message.reply(response);
             return;
         }
 
         // Default: Text reply
+        console.log('[DEBUG] Sending text reply...');
         message.reply(response);
     } catch (error: any) {
-        console.error("An error occurred", error);
+        console.error("[DEBUG] An error occurred:", error);
         message.reply("An error occurred, please contact the administrator. (" + error.message + ")");
     }
 };
