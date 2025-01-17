@@ -2,7 +2,7 @@ import os from "os";
 import fs from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
-import { Message, MessageMedia } from "whatsapp-web.js";
+import { Message, MessageMedia, Client } from "whatsapp-web.js";
 import { convertMediaToBase64, isImageMedia } from "../utils";
 import { chatCompletion } from "../providers/openai";
 import * as cli from "../cli/ui";
@@ -228,17 +228,39 @@ async function sendVoiceMessageReply(message: Message, gptTextResponse: string) 
 	// Save buffer to temp file
 	fs.writeFileSync(tempFilePath, audioBuffer);
 
-	// Send audio with metadata
+	// Send audio with metadata and caption
 	const messageMedia = new MessageMedia(
 		"audio/ogg; codecs=opus",
 		audioBuffer.toString("base64"),
 		`audio_${Date.now()}.opus`,  // filename
 		audioBuffer.length           // filesize
 	);
-	message.reply(messageMedia);
+	message.reply(messageMedia, { caption: 'Generated audio response' });
 
 	// Delete temp file
 	fs.unlinkSync(tempFilePath);
 }
 
-export { handleMessageGPT, handleDeleteConversation };
+async function sendLocalFileMedia(message: Message, filePath: string) {
+    try {
+        const media = MessageMedia.fromFilePath(filePath);
+        await message.reply(media);
+        cli.print(`[Media] Sent local file: ${filePath}`);
+    } catch (error) {
+        console.error('[Media] Error sending local file:', error);
+        throw new Error('Failed to send local file');
+    }
+}
+
+async function sendUrlMedia(message: Message, url: string) {
+    try {
+        const media = await MessageMedia.fromUrl(url);
+        await message.reply(media);
+        cli.print(`[Media] Sent URL media: ${url}`);
+    } catch (error) {
+        console.error('[Media] Error sending URL media:', error);
+        throw new Error('Failed to send URL media');
+    }
+}
+
+export { handleMessageGPT, handleDeleteConversation, sendLocalFileMedia, sendUrlMedia };
