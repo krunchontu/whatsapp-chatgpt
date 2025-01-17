@@ -1,0 +1,2 @@
+regex:^.*OpenAI API Key.*$
+regex:^.*passwords.*$
