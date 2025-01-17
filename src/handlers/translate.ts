@@ -30,8 +30,6 @@ const handleTranslate = async (message: Message) => {
 
         cli.print(`[Translate] Received translate command from ${message.from}`);
 
-        cli.print(`[Translate] Received translate command from ${message.from}`);
-
         // Determine if the chat is self-noted
         const isSelfChat = message.from === message.to;
 
