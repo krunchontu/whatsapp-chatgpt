@@ -3,11 +3,13 @@ import os from "os";
 import path from "path";
 import { randomUUID } from "crypto";
 import { OpenAI } from "openai";
+import { ChatGPTAPI } from 'chatgpt';
 import ffmpeg from "fluent-ffmpeg";
 import config from "../config";
 import { getConfig } from "../handlers/ai-config";
 
 export let openai: OpenAI;
+export let chatgpt: ChatGPTAPI;
 
 export function initOpenAI() {
   const apiKey = getConfig("gpt", "apiKey");
@@ -21,6 +23,16 @@ export function initOpenAI() {
     project: config.openAIProject,
     timeout: 10000,
     maxRetries: 3
+  });
+
+  // Initialize ChatGPT client
+  chatgpt = new ChatGPTAPI({
+    apiKey: apiKey,
+    completionParams: {
+      model: config.openAIModel,
+      temperature: 0.7,
+      max_tokens: config.maxModelTokens
+    }
   });
 }
 
