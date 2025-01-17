@@ -20,6 +20,9 @@ interface IConfig {
 	openAIProject: string;
 	maxModelTokens: number;
 	prePrompt: string | undefined;
+	// Moderation
+	moderationEnabled: boolean;
+	customModerationParams: { [key: string]: boolean };
 
 	// Prefix
 	prefixEnabled: boolean;
@@ -62,6 +65,14 @@ interface IConfig {
 export const config: IConfig = {
 	whitelistedPhoneNumbers: process.env.WHITELISTED_PHONE_NUMBERS?.split(",") || [],
 	whitelistedEnabled: getEnvBooleanWithDefault("WHITELISTED_ENABLED", false),
+	// Moderation
+	moderationEnabled: getEnvBooleanWithDefault("MODERATION_ENABLED", true),
+	customModerationParams: {
+		political_content: true,
+		misinformation: true,
+		hate_speech: true,
+		explicit_content: true
+	},
 
 	openAIAPIKeys: (process.env.OPENAI_API_KEYS || process.env.OPENAI_API_KEY || "").split(",").filter((key) => !!key), // Default: []
 	openAIModel: process.env.OPENAI_GPT_MODEL || "gpt-3.5-turbo", // Default: gpt-3.5-turbo
@@ -182,6 +193,19 @@ function getEnvTTSMode(): TTSMode {
  * Get the AWS Polly voice engine from the environment variable
  * @returns The voice engine
  */
+function getEnvCustomModerationParams(): { [key: string]: boolean } {
+    const envValue = process.env.CUSTOM_MODERATION_PARAMS;
+    if (!envValue) {
+        return {
+            political_content: true,
+            misinformation: true,
+            hate_speech: true,
+            explicit_content: true
+        };
+    }
+    return JSON.parse(envValue);
+}
+
 function getEnvAWSPollyVoiceEngine(): AWSPollyEngine {
 	const envValue = process.env.AWS_POLLY_VOICE_ENGINE?.toLowerCase();
 	if (envValue == undefined || envValue == "") {

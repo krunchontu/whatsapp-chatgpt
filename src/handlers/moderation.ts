@@ -2,15 +2,22 @@ import * as cli from "../cli/ui";
 import config from "../config";
 import { openai, initOpenAI } from "../providers/openai";
 
+// Custom moderation parameters
+interface CustomModerationParams {
+    [key: string]: boolean;
+}
+
+// Moderation response interface
+interface ModerationResponse {
+    flagged: boolean;
+    reason?: string;
+    categories?: { [key: string]: boolean };
+}
+
 /**
- * Handle prompt moderation
- *
- * @param prompt Prompt to moderate
- * @returns true if the prompt is safe, throws an error otherwise
+ * Check moderation using OpenAI's Moderation API
  */
-const moderateIncomingPrompt = async (prompt: string) => {
-    cli.print(`[MODERATION] Checking user prompt: "${prompt}"`);
-    
+async function checkModerationFlag(expression: string): Promise<ModerationResponse> {
     try {
         // Ensure OpenAI is initialized
         if (!openai) {
@@ -18,46 +25,90 @@ const moderateIncomingPrompt = async (prompt: string) => {
         }
 
         const moderationResponse = await openai.moderations.create({
-            input: prompt
+            input: expression
         });
 
-        // Add response validation
         if (!moderationResponse || !moderationResponse.data || !moderationResponse.data.results) {
-            cli.print("[MODERATION] Error: Invalid moderation response structure");
-            throw new Error("Invalid moderation response from OpenAI API");
+            throw new Error("Invalid moderation response structure");
         }
 
-        const moderationResponseData = moderationResponse.data;
-        const moderationResult = moderationResponseData.results[0];
-        
-        if (!moderationResult || !moderationResult.categories) {
-            cli.print("[MODERATION] Error: Missing categories in moderation result");
-            throw new Error("Invalid moderation categories from OpenAI API");
+        const result = moderationResponse.data.results[0];
+        return {
+            flagged: result.flagged,
+            categories: result.categories
+        };
+    } catch (error) {
+        cli.print(`[MODERATION] Error checking moderation: ${error.message}`);
+        throw error;
+    }
+}
+
+/**
+ * Custom moderation using GPT-4
+ */
+async function customModeration(content: string, parameters: CustomModerationParams): Promise<ModerationResponse> {
+    try {
+        if (!openai) {
+            initOpenAI();
         }
 
-        const moderationResponseCategories = moderationResult.categories;
-        const blackListedCategories = config.promptModerationBlacklistedCategories;
+        const prompt = `Assess this content for inappropriate material based on these parameters: ${JSON.stringify(parameters)}.
+        Return JSON with: flagged (boolean), reason (string), and parameters (object with parameter:boolean pairs).
+        Content: ${content}`;
 
-        // Improved logging
-        cli.print("[MODERATION] Moderation categories:");
-        Object.entries(moderationResponseCategories).forEach(([category, value]) => {
-            cli.print(`  ${category}: ${value} ${blackListedCategories.includes(category) ? '(monitored)' : ''}`);
+        const response = await openai.chat.completions.create({
+            model: config.openAIModel,
+            response_format: { type: "json_object" },
+            messages: [
+                { role: "system", content: "You are a content moderation assistant." },
+                { role: "user", content: prompt }
+            ]
         });
 
-        // Check blacklisted categories
-        for (const category of blackListedCategories) {
-            if (moderationResponseCategories[category]) {
-                cli.print(`[MODERATION] Rejected prompt due to category: ${category}`);
-                throw new Error(`Prompt was rejected by the moderation system. Reason: ${category}`);
+        return JSON.parse(response.choices[0].message.content);
+    } catch (error) {
+        cli.print(`[CUSTOM MODERATION] Error: ${error.message}`);
+        throw error;
+    }
+}
+
+/**
+ * Execute moderation with both input and output checks
+ */
+async function executeModeration(userInput: string, llmResponse?: string): Promise<boolean> {
+    try {
+        // Input moderation
+        const inputModeration = await checkModerationFlag(userInput);
+        if (inputModeration.flagged) {
+            cli.print(`[MODERATION] Input flagged: ${JSON.stringify(inputModeration.categories)}`);
+            return false;
+        }
+
+        // Output moderation if response provided
+        if (llmResponse) {
+            const outputModeration = await checkModerationFlag(llmResponse);
+            if (outputModeration.flagged) {
+                cli.print(`[MODERATION] Output flagged: ${JSON.stringify(outputModeration.categories)}`);
+                return false;
+            }
+
+            // Custom moderation example
+            const customParams = {
+                "political_content": true,
+                "misinformation": true
+            };
+            const customModerationResult = await customModeration(llmResponse, customParams);
+            if (customModerationResult.flagged) {
+                cli.print(`[CUSTOM MODERATION] Output flagged: ${customModerationResult.reason}`);
+                return false;
             }
         }
 
-        cli.print("[MODERATION] Prompt approved");
         return true;
     } catch (error) {
         cli.print(`[MODERATION] Error during moderation: ${error.message}`);
-        throw error; // Re-throw the error after logging
+        throw error;
     }
-};
+}
 
-export { moderateIncomingPrompt };
+export { executeModeration, checkModerationFlag, customModeration };
