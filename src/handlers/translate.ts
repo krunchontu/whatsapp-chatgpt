@@ -61,11 +61,18 @@ const handleTranslate = async (message: Message, value?: string) => {
             cli.print(`  ${index + 1}. ID: ${msg.id.id}, fromMe: ${msg.fromMe}, Body: "${msg.body}"`);
         });
 
+        // Find the index of the current translate command message
+        const translateCommandIndex = messages.findIndex(msg => msg.id.id === message.id.id);
+        if (translateCommandIndex === -1) {
+            message.reply("Could not locate the translate command in message history.");
+            return;
+        }
+
         // Initialize array to store target messages
         const targetMessages: Message[] = [];
 
-        // Iterate through fetched messages starting from the most recent message
-        for (let i = messages.length - 1; i >= 0; i--) {
+        // Start from the message after the translate command and collect the next N messages
+        for (let i = translateCommandIndex + 1; i < messages.length; i++) {
             const msg = messages[i];
 
             // Skip any additional !translate commands to avoid recursion
@@ -85,7 +92,7 @@ const handleTranslate = async (message: Message, value?: string) => {
         cli.print(`[Translate] Target messages found: ${targetMessages.length}`);
 
         if (targetMessages.length === 0) {
-            message.reply("There is no previous message to translate.");
+            message.reply("There are no messages after the translate command to translate.");
             return;
         }
 
