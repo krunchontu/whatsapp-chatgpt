@@ -78,8 +78,9 @@ const handleTranslate = async (message: Message, value?: string) => {
         for (let i = commandIndex + 1; i < reversedMessages.length; i++) {
             const msg = reversedMessages[i];
 
-            // Skip any additional !translate commands to avoid recursion
+            // Skip ALL previous translate commands (not just immediate ones)
             if (msg.body.trim().toLowerCase().startsWith("!translate")) {
+                cli.print(`[Translate] Skipping previous translate command: ${msg.body}`);
                 continue;
             }
 
@@ -101,6 +102,14 @@ const handleTranslate = async (message: Message, value?: string) => {
         const orderedTargetMessages = targetMessages.reverse();
 
         cli.print(`[Translate] Target messages found: ${orderedTargetMessages.length}`);
+        
+        cli.print(`[Translate] Processing ${orderedTargetMessages.length} target messages:`);
+        orderedTargetMessages.forEach((msg, index) => {
+            cli.print(`  ${index + 1}. ID: ${msg.id.id}, fromMe: ${msg.fromMe}, Body: "${msg.body}"`);
+            if (msg.body.trim().toLowerCase().startsWith("!translate")) {
+                cli.print(`    [SKIPPED] Previous translate command`);
+            }
+        });
 
         if (targetMessages.length === 0) {
             message.reply("There are no messages after the translate command to translate.");
@@ -117,7 +126,10 @@ const handleTranslate = async (message: Message, value?: string) => {
                 return true;
             })
             .map(msg => msg.body?.trim())
-            .filter(text => text && !text.toLowerCase().startsWith("!translate"));
+            .filter(text => {
+                // Skip empty texts and any text that starts with !translate (case insensitive)
+                return text && !text.toLowerCase().startsWith("!translate");
+            });
 
         if (textsToTranslate.length === 0) {
             message.reply("The previous messages are empty or not text.");
