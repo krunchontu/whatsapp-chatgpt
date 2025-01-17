@@ -217,8 +217,13 @@ async function sendVoiceMessageReply(message: Message, gptTextResponse: string) 
 	// Save buffer to temp file
 	fs.writeFileSync(tempFilePath, audioBuffer);
 
-	// Send audio
-	const messageMedia = new MessageMedia("audio/ogg; codecs=opus", audioBuffer.toString("base64"));
+	// Send audio with metadata
+	const messageMedia = new MessageMedia(
+		"audio/ogg; codecs=opus",
+		audioBuffer.toString("base64"),
+		`audio_${Date.now()}.opus`,  // filename
+		audioBuffer.length           // filesize
+	);
 	message.reply(messageMedia);
 
 	// Delete temp file
