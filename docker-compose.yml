@@ -1,4 +1,4 @@
-version: "3"
+version: "3.8"
 services:
     whatsapp-chatgpt:
         container_name: whatsapp-chatgpt
@@ -10,7 +10,34 @@ services:
             PREFIX_ENABLED: ""
             SERPAPI_API_KEY: ""
         restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 10s
+        deploy:
+            resources:
+                limits:
+                    cpus: "1.0"
+                    memory: 512M
+                reservations:
+                    memory: 256M
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "10m"
+                max-file: "3"
+        security_opt:
+            - no-new-privileges:true
         volumes:
             - session-data:/app/session
+        networks:
+            - whatsapp-net
+
 volumes:
     session-data:
+
+networks:
+    whatsapp-net:
+        driver: bridge
