@@ -1,4 +1,4 @@
-const AWS = require("aws-sdk");
+import { PollyClient, SynthesizeSpeechCommand } from "@aws-sdk/client-polly";
 import config from "../config";
 
 /**
@@ -6,28 +6,33 @@ import config from "../config";
  * @returns Audio buffer
  */
 async function ttsRequest(text: string): Promise<Buffer | null> {
-	const polly = new AWS.Polly({
-		credentials: new AWS.Credentials(config.awsAccessKeyId, config.awsSecretAccessKey),
-		region: config.awsRegion
-	});
+    const client = new PollyClient({
+        region: config.awsRegion,
+        credentials: {
+            accessKeyId: config.awsAccessKeyId,
+            secretAccessKey: config.awsSecretAccessKey
+        }
+    });
 
-	const params = {
-		OutputFormat: "mp3",
-		Text: text,
-		Engine: config.awsPollyEngine,
-		VoiceId: config.awsPollyVoiceId
-	};
+    const params = {
+        OutputFormat: "mp3",
+        Text: text,
+        Engine: config.awsPollyEngine,
+        VoiceId: config.awsPollyVoiceId
+    };
 
-	try {
-		const data = await polly.synthesizeSpeech(params).promise();
-		if (data.AudioStream instanceof Buffer) {
-			return data.AudioStream;
-		}
-		return null;
-	} catch (error) {
-		console.error("An error occured (TTS request)", error);
-		return null;
-	}
+    try {
+        const command = new SynthesizeSpeechCommand(params);
+        const data = await client.send(command);
+        
+        if (data.AudioStream) {
+            return Buffer.from(await data.AudioStream.transformToByteArray());
+        }
+        return null;
+    } catch (error) {
+        console.error("An error occurred (TTS request)", error);
+        return null;
+    }
 }
 
 export { ttsRequest };
