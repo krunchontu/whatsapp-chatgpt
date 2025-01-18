@@ -147,4 +147,20 @@ export function executeCommand(target: string, type: string, message: Message, v
 	}
 }
 
-export { aiConfig, handleMessageAIConfig, initAiConfig };
+const handleDeleteConversation = async (message: Message) => {
+    try {
+        // Clear conversation context
+        aiConfig.commandsMap.chat = ChatModule.register();
+        message.reply("Conversation context has been reset!");
+    } catch (error: any) {
+        console.error("An error occurred while resetting conversation", error);
+        message.reply("An error occurred while resetting conversation. Please try again.");
+    }
+};
+
+export { 
+    aiConfig, 
+    handleMessageAIConfig, 
+    initAiConfig,
+    handleDeleteConversation 
+};
