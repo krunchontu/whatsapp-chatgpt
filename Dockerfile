@@ -9,13 +9,19 @@ COPY package.json package-lock.json ./
 # Install dependencies with cleanup
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    gconf-service libgbm-dev libasound2 libatk1.0-0 libc6 libcairo2 \
-    libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 \
-    libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 \
-    libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 \
-    libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 \
-    libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation \
-    libappindicator1 libnss3 lsb-release xdg-utils wget chromium ffmpeg && \
+    chromium \
+    chromium-common \
+    chromium-sandbox \
+    libatk-bridge2.0-0 \
+    libgtk-3-0 \
+    libnss3 \
+    libxss1 \
+    libasound2 \
+    libxtst6 \
+    fonts-liberation \
+    libappindicator3-1 \
+    xdg-utils \
+    ffmpeg && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     npm install --production
@@ -49,8 +55,6 @@ WORKDIR /app
 COPY --from=build /app/node_modules ./node_modules
 COPY --chown=appuser:appuser . .
 
-# Remove Puppeteer's bundled Chromium
-RUN rm -rf /app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/.local-chromium
 
 # Environment variables
 ENV OPENAI_TIMEOUT 30000
@@ -81,6 +85,9 @@ ENV AWS_POLLY_VOICE_ID "Joanna"
 ENV AWS_POLLY_VOICE_ENGINE "standard"
 ENV NODE_ENV production
 ENV CHROME_BIN /usr/bin/chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
+ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium
+ENV CHROME_PATH /usr/bin/chromium
 
 # Set permissions
 RUN chown -R appuser:appuser /app && \
