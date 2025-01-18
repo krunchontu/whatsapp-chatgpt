@@ -9973,3 +9973,141 @@
 +	tts enabled: true, false
 +	sd setModel: runwayml/stable-diffusion-v1-5
 +	sd generate: A magical and adventurous story about "The Littlest Pudu."
+
+# 2025-01-18 22:39:09.264513
++when running docker container, i got this error. 
++whatsapp-chatgpt  | > whatsapp-chatgpt@1.0.0 start
++whatsapp-chatgpt  | > npx vite-node src/index.ts                                                                                        
++whatsapp-chatgpt  |                                                                                                                     
++whatsapp-chatgpt  | npm warn exec The following package was not found and will be installed: vite-node@3.0.2                            
++whatsapp-chatgpt  | 
++whatsapp-chatgpt  |  Whatsapp ChatGPT & DALL-E 
++whatsapp-chatgpt  | |-------------------------------------------------------------------------------------------------|                 
++whatsapp-chatgpt  | | A Whatsapp bot that uses OpenAI's ChatGPT and DALL-E to generate text and images from a prompt. |                 
++whatsapp-chatgpt  | |-------------------------------------------------------------------------------------------------|                 
++whatsapp-chatgpt  |                                                                                                                     
++whatsapp-chatgpt  | /app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/lib/cjs/puppeteer/node/BrowserRunner.js:299
++whatsapp-chatgpt  |             reject(new Error([
++whatsapp-chatgpt  |                    ^                                                                                                
++whatsapp-chatgpt  |                                                                                                                     
++whatsapp-chatgpt  | Error: Failed to launch the browser process!                                                                        
++whatsapp-chatgpt  | /usr/bin/chromium: 77: .: cannot open /etc/chromium.d/*: No such file                                               
++whatsapp-chatgpt  |                                                                                                                     
++whatsapp-chatgpt  | 
++whatsapp-chatgpt  | TROUBLESHOOTING: https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md                           
++whatsapp-chatgpt  |                                                                                                                     
++whatsapp-chatgpt  |     at onClose (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:327:9)      
++whatsapp-chatgpt  |     at Interface.<anonymous> (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:313:16)                                                                                                                               
++whatsapp-chatgpt  |     at Interface.emit (node:events:529:35)
++whatsapp-chatgpt  |     at Interface.close (node:internal/readline/interface:534:10)                                                    
++whatsapp-chatgpt  |     at Socket.onend (node:internal/readline/interface:260:10)                                                       
++whatsapp-chatgpt  |     at Socket.emit (node:events:529:35)                                                                             
++whatsapp-chatgpt  |     at endReadableNT (node:internal/streams/readable:1400:12)
++whatsapp-chatgpt  |     at processTicksAndRejections (node:internal/process/task_queues:82:21)                                          
++whatsapp-chatgpt  |                                                                                                                     
++whatsapp-chatgpt  | Node.js v18.20.5                                                                                                    
++whatsapp-chatgpt  | npm notice                                                                                                          
++whatsapp-chatgpt  | npm notice New major version of npm available! 10.8.2 -> 11.0.0
++whatsapp-chatgpt  | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.0.0                                               
++whatsapp-chatgpt  | npm notice To update run: npm install -g npm@11.0.0                                                                 
++whatsapp-chatgpt  | npm notice
++whatsapp-chatgpt exited with code 0
+
+# 2025-01-18 22:39:09.267509
++when running docker container, i got this error. 
++whatsapp-chatgpt  | > whatsapp-chatgpt@1.0.0 start
++whatsapp-chatgpt  | > npx vite-node src/index.ts                                                                                        
++whatsapp-chatgpt  |                                                                                                                     
++whatsapp-chatgpt  | npm warn exec The following package was not found and will be installed: vite-node@3.0.2                            
++whatsapp-chatgpt  | 
++whatsapp-chatgpt  |  Whatsapp ChatGPT & DALL-E 
++whatsapp-chatgpt  | |-------------------------------------------------------------------------------------------------|                 
++whatsapp-chatgpt  | | A Whatsapp bot that uses OpenAI's ChatGPT and DALL-E to generate text and images from a prompt. |                 
++whatsapp-chatgpt  | |-------------------------------------------------------------------------------------------------|                 
++whatsapp-chatgpt  |                                                                                                                     
++whatsapp-chatgpt  | /app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/lib/cjs/puppeteer/node/BrowserRunner.js:299
++whatsapp-chatgpt  |             reject(new Error([
++whatsapp-chatgpt  |                    ^                                                                                                
++whatsapp-chatgpt  |                                                                                                                     
++whatsapp-chatgpt  | Error: Failed to launch the browser process!                                                                        
++whatsapp-chatgpt  | /usr/bin/chromium: 77: .: cannot open /etc/chromium.d/*: No such file                                               
++whatsapp-chatgpt  |                                                                                                                     
++whatsapp-chatgpt  | 
++whatsapp-chatgpt  | TROUBLESHOOTING: https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md                           
++whatsapp-chatgpt  |                                                                                                                     
++whatsapp-chatgpt  |     at onClose (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:327:9)      
++whatsapp-chatgpt  |     at Interface.<anonymous> (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:313:16)                                                                                                                               
++whatsapp-chatgpt  |     at Interface.emit (node:events:529:35)
++whatsapp-chatgpt  |     at Interface.close (node:internal/readline/interface:534:10)                                                    
++whatsapp-chatgpt  |     at Socket.onend (node:internal/readline/interface:260:10)                                                       
++whatsapp-chatgpt  |     at Socket.emit (node:events:529:35)                                                                             
++whatsapp-chatgpt  |     at endReadableNT (node:internal/streams/readable:1400:12)
++whatsapp-chatgpt  |     at processTicksAndRejections (node:internal/process/task_queues:82:21)                                          
++whatsapp-chatgpt  |                                                                                                                     
++whatsapp-chatgpt  | Node.js v18.20.5                                                                                                    
++whatsapp-chatgpt  | npm notice                                                                                                          
++whatsapp-chatgpt  | npm notice New major version of npm available! 10.8.2 -> 11.0.0
++whatsapp-chatgpt  | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.0.0                                               
++whatsapp-chatgpt  | npm notice To update run: npm install -g npm@11.0.0                                                                 
++whatsapp-chatgpt  | npm notice
++whatsapp-chatgpt exited with code 0
+
+# 2025-01-18 22:40:53.207675
++when running docker container, i got this error. do not add, read or edit package-lock.json for this code fix
++
++whatsapp-chatgpt | > whatsapp-chatgpt@1.0.0 start whatsapp-chatgpt | > npx vite-node src/index.ts
++whatsapp-chatgpt |
++whatsapp-chatgpt | npm warn exec The following package was not found and will be installed: vite-node@3.0.2
++whatsapp-chatgpt | whatsapp-chatgpt | Whatsapp ChatGPT & DALL-E whatsapp-chatgpt | |-------------------------------------------------------------------------------------------------|
++whatsapp-chatgpt | | A Whatsapp bot that uses OpenAI's ChatGPT and DALL-E to generate text and images from a prompt. |
++whatsapp-chatgpt | |-------------------------------------------------------------------------------------------------|
++whatsapp-chatgpt |
++whatsapp-chatgpt | /app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/lib/cjs/puppeteer/node/BrowserRunner.js:299 whatsapp-chatgpt | reject(new Error([ whatsapp-chatgpt | ^
++whatsapp-chatgpt |
++whatsapp-chatgpt | Error: Failed to launch the browser process!
++whatsapp-chatgpt | /usr/bin/chromium: 77: .: cannot open /etc/chromium.d/*: No such file
++whatsapp-chatgpt |
++whatsapp-chatgpt | whatsapp-chatgpt | TROUBLESHOOTING: https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md
++whatsapp-chatgpt |
++whatsapp-chatgpt | at onClose (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:327:9)
++whatsapp-chatgpt | at Interface.<anonymous> (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:313:16)
++whatsapp-chatgpt | at Interface.emit (node:events:529:35) whatsapp-chatgpt | at Interface.close (node:internal/readline/interface:534:10)
++whatsapp-chatgpt | at Socket.onend (node:internal/readline/interface:260:10)
++whatsapp-chatgpt | at Socket.emit (node:events:529:35)
++whatsapp-chatgpt | at endReadableNT (node:internal/streams/readable:1400:12) whatsapp-chatgpt | at processTicksAndRejections (node:internal/process/task_queues:82:21)
++whatsapp-chatgpt |
++whatsapp-chatgpt | Node.js v18.20.5
++whatsapp-chatgpt | npm notice
++whatsapp-chatgpt | npm notice New major version of npm available! 10.8.2 → 11.0.0 whatsapp-chatgpt | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.0.0
++whatsapp-chatgpt | npm notice To update run: npm install -g npm@11.0.0
++whatsapp-chatgpt | npm notice whatsapp-chatgpt exited with code 0
+
+# 2025-01-18 22:40:53.207675
++when running docker container, i got this error. do not add, read or edit package-lock.json for this code fix
++
++whatsapp-chatgpt | > whatsapp-chatgpt@1.0.0 start whatsapp-chatgpt | > npx vite-node src/index.ts
++whatsapp-chatgpt |
++whatsapp-chatgpt | npm warn exec The following package was not found and will be installed: vite-node@3.0.2
++whatsapp-chatgpt | whatsapp-chatgpt | Whatsapp ChatGPT & DALL-E whatsapp-chatgpt | |-------------------------------------------------------------------------------------------------|
++whatsapp-chatgpt | | A Whatsapp bot that uses OpenAI's ChatGPT and DALL-E to generate text and images from a prompt. |
++whatsapp-chatgpt | |-------------------------------------------------------------------------------------------------|
++whatsapp-chatgpt |
++whatsapp-chatgpt | /app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/lib/cjs/puppeteer/node/BrowserRunner.js:299 whatsapp-chatgpt | reject(new Error([ whatsapp-chatgpt | ^
++whatsapp-chatgpt |
++whatsapp-chatgpt | Error: Failed to launch the browser process!
++whatsapp-chatgpt | /usr/bin/chromium: 77: .: cannot open /etc/chromium.d/*: No such file
++whatsapp-chatgpt |
++whatsapp-chatgpt | whatsapp-chatgpt | TROUBLESHOOTING: https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md
++whatsapp-chatgpt |
++whatsapp-chatgpt | at onClose (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:327:9)
++whatsapp-chatgpt | at Interface.<anonymous> (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:313:16)
++whatsapp-chatgpt | at Interface.emit (node:events:529:35) whatsapp-chatgpt | at Interface.close (node:internal/readline/interface:534:10)
++whatsapp-chatgpt | at Socket.onend (node:internal/readline/interface:260:10)
++whatsapp-chatgpt | at Socket.emit (node:events:529:35)
++whatsapp-chatgpt | at endReadableNT (node:internal/streams/readable:1400:12) whatsapp-chatgpt | at processTicksAndRejections (node:internal/process/task_queues:82:21)
++whatsapp-chatgpt |
++whatsapp-chatgpt | Node.js v18.20.5
++whatsapp-chatgpt | npm notice
++whatsapp-chatgpt | npm notice New major version of npm available! 10.8.2 → 11.0.0 whatsapp-chatgpt | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.0.0
++whatsapp-chatgpt | npm notice To update run: npm install -g npm@11.0.0
++whatsapp-chatgpt | npm notice whatsapp-chatgpt exited with code 0

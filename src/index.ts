@@ -1,5 +1,5 @@
 // Suppress punycode deprecation warning
-process.removeAllListeners('warning');
+process.removeAllListeners("warning");
 
 import qrcode from "qrcode";
 import { Client, Message, Events, LocalAuth } from "whatsapp-web.js";
@@ -30,7 +30,17 @@ const start = async () => {
 	// WhatsApp Client
 	const client = new Client({
 		puppeteer: {
-			args: ["--no-sandbox"]
+			executablePath: process.env.CHROME_BIN || "/usr/bin/chromium",
+			args: [
+				"--no-sandbox",
+				"--disable-setuid-sandbox",
+				"--disable-dev-shm-usage",
+				"--disable-accelerated-2d-canvas",
+				"--no-first-run",
+				"--no-zygote",
+				"--single-process",
+				"--disable-gpu"
+			]
 		},
 		authStrategy: new LocalAuth({
 			dataPath: constants.sessionPath
@@ -86,7 +96,7 @@ const start = async () => {
 
 		initAiConfig();
 		initOpenAI();
-		
+
 		// Command modules are registered in initAiConfig()
 	});
 
