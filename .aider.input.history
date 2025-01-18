@@ -9875,3 +9875,101 @@
 
 # 2025-01-18 17:42:53.100246
 +i want to deploy this app to docker container. please help check the setup files to prepare
+
+# 2025-01-18 21:57:08.194098
++when user keys in '!reset' command in the chat. the following error occures
++C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\handlers\message.ts:94
++    await __vite_ssr_import_3__.handleDeleteConversation(message);
++                                ^
++
++TypeError: __vite_ssr_import_3__.handleDeleteConversation is not a function
++    at Module.handleIncomingMessage (C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\handlers\message.ts:94:33)
++    at processTicksAndRejections (node:internal/process/task_queues:105:5)
++    at Client.<anonymous> (C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\index.ts:74:5)
+
+# 2025-01-18 21:57:08.195103
++when user keys in '!reset' command in the chat. the following error occures
++C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\handlers\message.ts:94
++    await __vite_ssr_import_3__.handleDeleteConversation(message);
++                                ^
++
++TypeError: __vite_ssr_import_3__.handleDeleteConversation is not a function
++    at Module.handleIncomingMessage (C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\handlers\message.ts:94:33)
++    at processTicksAndRejections (node:internal/process/task_queues:105:5)
++    at Client.<anonymous> (C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\index.ts:74:5)
+
+# 2025-01-18 22:01:44.135390
++when user keys in '!reset' command in the chat. the following error occurs
++
++C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\handlers\message.ts:96
++    await __vite_ssr_import_4__.handleDeleteConversation(message);
++                                ^
++
++TypeError: __vite_ssr_import_4__.handleDeleteConversation is not a function
++    at Module.handleIncomingMessage (C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\handlers\message.ts:96:33)
++    at processTicksAndRejections (node:internal/process/task_queues:105:5)
++    at Client.<anonymous> (C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\index.ts:74:5)
+
+# 2025-01-18 22:01:44.135390
++when user keys in '!reset' command in the chat. the following error occurs
++
++C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\handlers\message.ts:96
++    await __vite_ssr_import_4__.handleDeleteConversation(message);
++                                ^
++
++TypeError: __vite_ssr_import_4__.handleDeleteConversation is not a function
++    at Module.handleIncomingMessage (C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\handlers\message.ts:96:33)
++    at processTicksAndRejections (node:internal/process/task_queues:105:5)
++    at Client.<anonymous> (C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\index.ts:74:5)
+
+# 2025-01-18 22:05:57.057180
++when user keys in '!config' command, this pops up in the chat. tell me how it works
++Available commands:
++	!config dalle size <value> - Set dalle size to <value>
++	!config chat id - Get the ID of the chat
++	!config general settings - Get current settings
++	!config general whitelist <value> - Set whitelisted phone numbers
++	!config gpt apiKey <value> - Set token pool, support multiple tokens with comma-separated
++	!config gpt maxModelTokens <value> - Set max model tokens value
++	!config transcription enabled <value> - Toggle if transcription is enabled
++	!config transcription mode <value> - Set transcription mode
++	!config tts enabled <value> - Toggle if TTS is enabled
++	!config sd setModel <value> - Set the model to be used of Stable Diffusion (with huggingface)
++	!config sd generate <prompt> - Given the prompt, generate an image using Stable Diffusion (with huggingface)
++	!config translate translate !translate [number] - Translate the last [number] messages in this chat to English (default: 1)
++
++Available values:
++	dalle size: 1024x1024, 1024x1792, 1792x1024
++	gpt apiKey: sk-xxxx,sk-xxxx
++	gpt maxModelTokens: integer
++	transcription enabled: true, false
++	transcription mode: 0, 1, 2, 3
++	tts enabled: true, false
++	sd setModel: runwayml/stable-diffusion-v1-5
++	sd generate: A magical and adventurous story about "The Littlest Pudu."
+
+# 2025-01-18 22:05:57.058176
++when user keys in '!config' command, this pops up in the chat. tell me how it works
++Available commands:
++	!config dalle size <value> - Set dalle size to <value>
++	!config chat id - Get the ID of the chat
++	!config general settings - Get current settings
++	!config general whitelist <value> - Set whitelisted phone numbers
++	!config gpt apiKey <value> - Set token pool, support multiple tokens with comma-separated
++	!config gpt maxModelTokens <value> - Set max model tokens value
++	!config transcription enabled <value> - Toggle if transcription is enabled
++	!config transcription mode <value> - Set transcription mode
++	!config tts enabled <value> - Toggle if TTS is enabled
++	!config sd setModel <value> - Set the model to be used of Stable Diffusion (with huggingface)
++	!config sd generate <prompt> - Given the prompt, generate an image using Stable Diffusion (with huggingface)
++	!config translate translate !translate [number] - Translate the last [number] messages in this chat to English (default: 1)
++
++Available values:
++	dalle size: 1024x1024, 1024x1792, 1792x1024
++	gpt apiKey: sk-xxxx,sk-xxxx
++	gpt maxModelTokens: integer
++	transcription enabled: true, false
++	transcription mode: 0, 1, 2, 3
++	tts enabled: true, false
++	sd setModel: runwayml/stable-diffusion-v1-5
++	sd generate: A magical and adventurous story about "The Littlest Pudu."

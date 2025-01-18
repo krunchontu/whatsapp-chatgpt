@@ -1,6 +1,11 @@
 # Build stage
 FROM node:18-bullseye-slim AS build
 
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json ./
+
 # Install dependencies with cleanup
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -12,7 +17,8 @@ RUN apt-get update && \
     libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation \
     libappindicator1 libnss3 lsb-release xdg-utils wget chromium ffmpeg && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    npm install --production
 
 # Runtime stage
 FROM node:18-bullseye-slim

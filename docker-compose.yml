@@ -2,13 +2,9 @@ version: "3.8"
 services:
     whatsapp-chatgpt:
         container_name: whatsapp-chatgpt
-        read_only: true
-        image: ghcr.io/askrella/whatsapp-chatgpt:master
-        environment:
-            OPENAI_API_KEY: ""
-            OPENAI_GPT_MODEL: ""
-            PREFIX_ENABLED: ""
-            SERPAPI_API_KEY: ""
+        build: .
+        tmpfs:
+            - /tmp
         restart: unless-stopped
         healthcheck:
             test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
