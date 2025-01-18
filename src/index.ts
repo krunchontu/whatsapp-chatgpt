@@ -1,3 +1,6 @@
+// Suppress punycode deprecation warning
+process.removeAllListeners('warning');
+
 import qrcode from "qrcode";
 import { Client, Message, Events, LocalAuth } from "whatsapp-web.js";
 
