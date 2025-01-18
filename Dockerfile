@@ -23,6 +23,15 @@ RUN apt-get update && \
 # Runtime stage
 FROM node:18-bullseye-slim
 
+# Install required libraries
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libdbus-1-3 libx11-6 libx11-xcb1 libxcomposite1 \
+    libxdamage1 libxext6 libxfixes3 libxrandr2 libgbm1 \
+    libasound2 libatk1.0-0 libatk-bridge2.0-0 libgtk-3-0 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Create non-root user
 RUN groupadd -r appuser && \
     useradd -r -g appuser -d /app -s /bin/bash appuser
@@ -39,6 +48,9 @@ WORKDIR /app
 # Copy application files
 COPY --from=build /app/node_modules ./node_modules
 COPY --chown=appuser:appuser . .
+
+# Remove Puppeteer's bundled Chromium
+RUN rm -rf /app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/.local-chromium
 
 # Environment variables
 ENV OPENAI_TIMEOUT 30000
