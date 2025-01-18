@@ -8,7 +8,8 @@ import config from "../config";
 import * as cli from "../cli/ui";
 
 // ChatGPT & DALLE
-import { handleMessageGPT, handleDeleteConversation } from "../handlers/gpt";
+import { handleMessageGPT } from "../handlers/gpt";
+import { handleDeleteConversation } from "../handlers/ai-config";
 import { handleMessageDALLE } from "../handlers/dalle";
 import { handleMessageAIConfig, getConfig, executeCommand } from "../handlers/ai-config";
 import { handleMessageLangChain } from "../handlers/langchain";
