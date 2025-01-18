@@ -28,4 +28,4 @@ whatsapp-chatgpt-backup.git/
 .idea/
 
 # Local environment
-.env
+#.env
