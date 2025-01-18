@@ -35,13 +35,13 @@ const handleMessageDALLE = async (message: any, prompt: any) => {
         const end = Date.now() - start;
 
         // Validate the response structure
-        if (!response.data || !response.data.data || response.data.data.length === 0) {
+        if (!response.data || response.data.length === 0) {
             console.error('Unexpected OpenAI response:', response.data);
             throw new Error('No image data returned from OpenAI.');
         }
 
         // Extract the image URL
-        const imageUrl = response.data.data[0].url;
+        const imageUrl = response.data[0].url;
 
         // Create MessageMedia from the URL
         const image = await MessageMedia.fromUrl(imageUrl, {
