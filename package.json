@@ -11,10 +11,10 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-polly": "^3.731.1",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@langchain/community": "^0.3.24",
     "@langchain/openai": "^0.3.0",
-    "@aws-sdk/client-polly": "^3.540.0",
     "chatgpt": "^5.2.5",
     "dotenv": "^16.3.1",
     "fetch-blob": "^4.0.0",
