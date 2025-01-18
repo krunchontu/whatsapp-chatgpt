@@ -596,3 +596,4 @@ MigrationBackup/
 .env
 .env.example
 .aider.chat.history.md
+.aider.input.history

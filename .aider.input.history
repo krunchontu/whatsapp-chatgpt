@@ -9283,3 +9283,181 @@
 +To https://github.com/krunchontu/whatsapp-chatgpt.git
 + ! [remote rejected] master -> master (push declined due to repository rule violations)
 +error: failed to push some refs to 'https://github.com/krunchontu/whatsapp-chatgpt.git'
+
+# 2025-01-18 15:11:47.810102
++explain how this app works
+
+# 2025-01-18 15:11:47.811101
++explain how this app works
+
+# 2025-01-18 15:14:40.805246
++◇  [DALL-E] Received prompt from 6596991290@c.us: generate an apple
++Unexpected OpenAI response: [
++  {
++    revised_prompt: "Imagine a ripe apple situated centrally on a plain, neutral-toned surface. The apple radiates health and vitality, its skin a polished blend of robust reds and deep, velvety greens. Bright light from an overhead source casts a gentle shadow, hinting at the apple's three-dimensionality. Micro droplets of cool condensation rest on the apple's surface, making it appear even more enticing.",
++    url: 'https://oaidalleapiprodscus.blob.core.windows.net/private/org-gibllqAVcX3erKtPZnQZ8xbk/user-Cwb2jPP0yEjEHLPS5GbNIQvD/img-Sh9jxg7N0wm3Boq0gZOI4ZnT.png?st=2025-01-18T06%3A14%3A09Z&se=2025-01-18T08%3A14%3A09Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=d505667d-d6c1-4a0a-bac7-5c84a87759f8&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-01-18T00%3A22%3A26Z&ske=2025-01-19T00%3A22%3A26Z&sks=b&skv=2024-08-04&sig=3nmCMvbQh5B8ykIZqRW9yfhjdIlM%2BxBOyYMFF3unbRk%3D'
++  }
++]
++An error occurred in handleMessageDALLE: Error: No image data returned from OpenAI.
++    at Module.handleMessageDALLE (C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\handlers\dalle.ts:40:19)
++    at processTicksAndRejections (node:internal/process/task_queues:105:5)
++    at Module.handleIncomingMessage (C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\handlers\message.ts:161:3)
++    at Client.<anonymous> (C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\index.ts:112:3)
+
+# 2025-01-18 15:14:40.806231
++◇  [DALL-E] Received prompt from 6596991290@c.us: generate an apple
++Unexpected OpenAI response: [
++  {
++    revised_prompt: "Imagine a ripe apple situated centrally on a plain, neutral-toned surface. The apple radiates health and vitality, its skin a polished blend of robust reds and deep, velvety greens. Bright light from an overhead source casts a gentle shadow, hinting at the apple's three-dimensionality. Micro droplets of cool condensation rest on the apple's surface, making it appear even more enticing.",
++    url: 'https://oaidalleapiprodscus.blob.core.windows.net/private/org-gibllqAVcX3erKtPZnQZ8xbk/user-Cwb2jPP0yEjEHLPS5GbNIQvD/img-Sh9jxg7N0wm3Boq0gZOI4ZnT.png?st=2025-01-18T06%3A14%3A09Z&se=2025-01-18T08%3A14%3A09Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=d505667d-d6c1-4a0a-bac7-5c84a87759f8&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-01-18T00%3A22%3A26Z&ske=2025-01-19T00%3A22%3A26Z&sks=b&skv=2024-08-04&sig=3nmCMvbQh5B8ykIZqRW9yfhjdIlM%2BxBOyYMFF3unbRk%3D'
++  }
++]
++An error occurred in handleMessageDALLE: Error: No image data returned from OpenAI.
++    at Module.handleMessageDALLE (C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\handlers\dalle.ts:40:19)
++    at processTicksAndRejections (node:internal/process/task_queues:105:5)
++    at Module.handleIncomingMessage (C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\handlers\message.ts:161:3)
++    at Client.<anonymous> (C:\Users\krunc\OneDrive\Documents\GitHub\whatsapp-chatgpt\src\index.ts:112:3)
+
+# 2025-01-18 15:21:47.733025
++check the api implementation again, given the following documentation. 
++
++Create image
++post https://api.openai.com/v1/images/generations
++
++Creates an image given a prompt.
++Request body
++prompt
++
++string
++Required
++
++A text description of the desired image(s). The maximum length is 1000 characters for dall-e-2 and 4000 characters for dall-e-3.
++model
++
++string
++Optional
++Defaults to dall-e-2
++
++The model to use for image generation.
++n
++
++integer or null
++Optional
++Defaults to 1
++
++The number of images to generate. Must be between 1 and 10. For dall-e-3, only n=1 is supported.
++quality
++
++string
++Optional
++Defaults to standard
++
++The quality of the image that will be generated. hd creates images with finer details and greater consistency across the image. This param is only supported for dall-e-3.
++response_format
++
++string or null
++Optional
++Defaults to url
++
++The format in which the generated images are returned. Must be one of url or b64_json. URLs are only valid for 60 minutes after the image has been generated.
++size
++
++string or null
++Optional
++Defaults to 1024x1024
++
++The size of the generated images. Must be one of 256x256, 512x512, or 1024x1024 for dall-e-2. Must be one of 1024x1024, 1792x1024, or 1024x1792 for dall-e-3 models.
++style
++
++string or null
++Optional
++Defaults to vivid
++
++The style of the generated images. Must be one of vivid or natural. Vivid causes the model to lean towards generating hyper-real and dramatic images. Natural causes the model to produce more natural, less hyper-real looking images. This param is only supported for dall-e-3.
++user
++
++string
++Optional
++
++A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. Learn more.
++Returns
++
++Returns a list of image objects.
+
+# 2025-01-18 15:21:47.744028
++check the api implementation again, given the following documentation. 
++
++Create image
++post https://api.openai.com/v1/images/generations
++
++Creates an image given a prompt.
++Request body
++prompt
++
++string
++Required
++
++A text description of the desired image(s). The maximum length is 1000 characters for dall-e-2 and 4000 characters for dall-e-3.
++model
++
++string
++Optional
++Defaults to dall-e-2
++
++The model to use for image generation.
++n
++
++integer or null
++Optional
++Defaults to 1
++
++The number of images to generate. Must be between 1 and 10. For dall-e-3, only n=1 is supported.
++quality
++
++string
++Optional
++Defaults to standard
++
++The quality of the image that will be generated. hd creates images with finer details and greater consistency across the image. This param is only supported for dall-e-3.
++response_format
++
++string or null
++Optional
++Defaults to url
++
++The format in which the generated images are returned. Must be one of url or b64_json. URLs are only valid for 60 minutes after the image has been generated.
++size
++
++string or null
++Optional
++Defaults to 1024x1024
++
++The size of the generated images. Must be one of 256x256, 512x512, or 1024x1024 for dall-e-2. Must be one of 1024x1024, 1792x1024, or 1024x1792 for dall-e-3 models.
++style
++
++string or null
++Optional
++Defaults to vivid
++
++The style of the generated images. Must be one of vivid or natural. Vivid causes the model to lean towards generating hyper-real and dramatic images. Natural causes the model to produce more natural, less hyper-real looking images. This param is only supported for dall-e-3.
++user
++
++string
++Optional
++
++A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. Learn more.
++Returns
++
++Returns a list of image objects.
+
+# 2025-01-18 15:26:00.939213
++add this to gitignore >> .aider.tags.cache.v3\cache.db
+
+# 2025-01-18 15:26:00.940215
++add this to gitignore >> .aider.tags.cache.v3\cache.db
+
+# 2025-01-18 15:27:24.264691
++add this to gitignore >> .aider.input.history
+
+# 2025-01-18 15:27:24.265691
++add this to gitignore >> .aider.input.history
