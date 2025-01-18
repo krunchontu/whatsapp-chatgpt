@@ -125,8 +125,13 @@ const start = async () => {
 		await handleIncomingMessage(message);
 	});
 
-	// WhatsApp initialization
-	client.initialize();
+	// WhatsApp initialization with error handling
+	try {
+		client.initialize();
+	} catch (error) {
+		cli.printError(`Failed to initialize WhatsApp client: ${error}`);
+		process.exit(1);
+	}
 };
 
 start();
