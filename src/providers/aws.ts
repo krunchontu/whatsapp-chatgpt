@@ -1,4 +1,5 @@
 import { PollyClient, SynthesizeSpeechCommand } from "@aws-sdk/client-polly";
+import { Readable } from "stream";
 import config from "../config";
 
 /**
@@ -25,12 +26,23 @@ async function ttsRequest(text: string): Promise<Buffer | null> {
         const command = new SynthesizeSpeechCommand(params);
         const data = await client.send(command);
         
-        if (data.AudioStream) {
-            return Buffer.from(await data.AudioStream.transformToByteArray());
+        if (data.AudioStream instanceof Readable) {
+            const chunks: Buffer[] = [];
+            for await (const chunk of data.AudioStream) {
+                chunks.push(chunk);
+            }
+            return Buffer.concat(chunks);
         }
         return null;
     } catch (error) {
         console.error("An error occurred (TTS request)", error);
+        if (error.$metadata) {
+            console.log({
+                requestId: error.$metadata.requestId,
+                cfId: error.$metadata.cfId,
+                extendedRequestId: error.$metadata.extendedRequestId
+            });
+        }
         return null;
     }
 }
