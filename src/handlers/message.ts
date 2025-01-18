@@ -129,7 +129,21 @@ async function handleIncomingMessage(message: Message) {
 		return;
 	}
 
-	// AiConfig (!config <args>)
+	// AiConfig (!config <category> <setting> <value>)
+	// Allows dynamic configuration of bot settings through chat
+	// Examples:
+	//   !config transcription enabled true
+	//   !config dalle size 1024x1024
+	//   !config gpt apiKey sk-xxxx,sk-yyyy
+	// Available categories:
+	//   - dalle: DALL-E image generation settings
+	//   - chat: Chat-related settings
+	//   - general: General bot settings
+	//   - gpt: GPT model settings
+	//   - transcription: Audio transcription settings
+	//   - tts: Text-to-speech settings
+	//   - sd: Stable Diffusion settings
+	//   - translate: Translation settings
 	if (startsWithIgnoreCase(messageString, config.aiConfigPrefix)) {
 		const prompt = messageString.substring(config.aiConfigPrefix.length + 1);
 		await handleMessageAIConfig(message, prompt);
