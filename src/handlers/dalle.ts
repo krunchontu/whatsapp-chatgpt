@@ -23,19 +23,27 @@ const handleMessageDALLE = async (message: any, prompt: any) => {
             }
         }
 
+        // Validate image size for DALL-E 3
+        const validSizes = ["1024x1024", "1792x1024", "1024x1792"];
+        if (!validSizes.includes(aiConfig.dalle.size)) {
+            throw new Error(`Invalid image size for DALL-E 3: ${aiConfig.dalle.size}. Valid sizes are 1024x1024, 1792x1024, or 1024x1792.`);
+        }
+
         // Send the prompt to the API
         const response = await openai.images.generate({
             prompt: prompt,
             n: 1,
             size: aiConfig.dalle.size as CreateImageRequestSizeEnum,
             response_format: "url",
-            model: aiConfig.dalle.model || "dall-e-3"
+            model: aiConfig.dalle.model || "dall-e-3",
+            quality: aiConfig.dalle.quality || "standard", // Optional: Can be "standard" or "hd" for DALL-E 3
+            style: aiConfig.dalle.style || "vivid" // Optional: Can be "vivid" or "natural" for DALL-E 3
         });
 
         const end = Date.now() - start;
 
         // Validate the response structure
-        if (!response.data || response.data.length === 0) {
+        if (!response.data || !Array.isArray(response.data) || response.data.length === 0 || !response.data[0].url) {
             console.error('Unexpected OpenAI response:', response.data);
             throw new Error('No image data returned from OpenAI.');
         }
