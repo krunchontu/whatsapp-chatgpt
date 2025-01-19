@@ -29,7 +29,7 @@ RUN apt-get update && \
 # Runtime stage
 FROM node:18-bullseye-slim
 
-# Install required libraries
+# Install required libraries and 'tini'
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         libdbus-1-3 \
@@ -57,6 +57,7 @@ RUN apt-get update && \
         libpangocairo-1.0-0 \
         libgdk-pixbuf2.0-0 \
         libnspr4 \
+        tini \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -118,6 +119,9 @@ RUN chown -R appuser:appuser /app && \
     chmod -R 755 /app
 
 USER appuser
+
+# Set 'tini' as the entrypoint
+ENTRYPOINT ["/usr/bin/tini", "--"]
 
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
     CMD curl -f http://localhost:3000/health || exit 1
