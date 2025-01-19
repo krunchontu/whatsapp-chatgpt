@@ -25,7 +25,7 @@
 		"lru-cache": "^10.2.0",
 		"openai": "^4.52.1",
 		"picocolors": "^1.0.0",
-		"puppeteer": "^22.8.2",
+		"puppeteer": "22.15.0",
 		"qrcode": "^1.5.3",
 		"rimraf": "^5.0.5",
 		"whatsapp-web.js": "^1.26.0",

@@ -30,7 +30,7 @@ const start = async () => {
 	// WhatsApp Client
 	const client = new Client({
 		puppeteer: {
-			executablePath: process.env.CHROME_BIN || "/usr/bin/chromium",
+			executablePath: process.platform === "win32" ? undefined : process.env.CHROME_BIN || "/usr/bin/chromium",
 			args: [
 				"--no-sandbox",
 				"--disable-setuid-sandbox",
@@ -49,6 +49,11 @@ const start = async () => {
 			type: "remote",
 			remotePath: `https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/${wwebVersion}.html`
 		}
+	});
+
+	// Browser launch confirmation
+	client.on("browser_launched", () => {
+		console.log("Chromium browser successfully launched");
 	});
 
 	// WhatsApp auth
