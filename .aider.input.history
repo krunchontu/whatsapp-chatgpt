@@ -10111,3 +10111,471 @@
 +whatsapp-chatgpt | npm notice New major version of npm available! 10.8.2 → 11.0.0 whatsapp-chatgpt | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.0.0
 +whatsapp-chatgpt | npm notice To update run: npm install -g npm@11.0.0
 +whatsapp-chatgpt | npm notice whatsapp-chatgpt exited with code 0
+
+# 2025-01-18 22:43:11.973541
++check if index.ts has any issues with regards to the fix done in Dockerfile earlier
+
+# 2025-01-18 22:43:11.974539
++check if index.ts has any issues with regards to the fix done in Dockerfile earlier
+
+# 2025-01-19 08:09:15.988028
++when running docker container, i got this error. do not add, read or edit package-lock.json for this code fix
++
++whatsapp-chatgpt | > whatsapp-chatgpt@1.0.0 start whatsapp-chatgpt | > npx vite-node src/index.ts
++whatsapp-chatgpt |
++whatsapp-chatgpt | npm warn exec The following package was not found and will be installed: vite-node@3.0.2
++whatsapp-chatgpt | whatsapp-chatgpt | Whatsapp ChatGPT & DALL-E whatsapp-chatgpt | |-------------------------------------------------------------------------------------------------|
++whatsapp-chatgpt | | A Whatsapp bot that uses OpenAI's ChatGPT and DALL-E to generate text and images from a prompt. |
++whatsapp-chatgpt | |-------------------------------------------------------------------------------------------------|
++whatsapp-chatgpt |
++whatsapp-chatgpt | /app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/lib/cjs/puppeteer/node/BrowserRunner.js:299 whatsapp-chatgpt | reject(new Error([ whatsapp-chatgpt | ^
++whatsapp-chatgpt |
++whatsapp-chatgpt | Error: Failed to launch the browser process!
++whatsapp-chatgpt | /usr/bin/chromium: 77: .: cannot open /etc/chromium.d/*: No such file
++whatsapp-chatgpt |
++whatsapp-chatgpt | whatsapp-chatgpt | TROUBLESHOOTING: https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md
++whatsapp-chatgpt |
++whatsapp-chatgpt | at onClose (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:327:9)
++whatsapp-chatgpt | at Interface.<anonymous> (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:313:16)
++whatsapp-chatgpt | at Interface.emit (node:events:529:35) whatsapp-chatgpt | at Interface.close (node:internal/readline/interface:534:10)
++whatsapp-chatgpt | at Socket.onend (node:internal/readline/interface:260:10)
++whatsapp-chatgpt | at Socket.emit (node:events:529:35)
++whatsapp-chatgpt | at endReadableNT (node:internal/streams/readable:1400:12) whatsapp-chatgpt | at processTicksAndRejections (node:internal/process/task_queues:82:21)
++whatsapp-chatgpt |
++whatsapp-chatgpt | Node.js v18.20.5
++whatsapp-chatgpt | npm notice
++whatsapp-chatgpt | npm notice New major version of npm available! 10.8.2 → 11.0.0 whatsapp-chatgpt | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.0.0
++whatsapp-chatgpt | npm notice To update run: npm install -g npm@11.0.0
++whatsapp-chatgpt | npm notice whatsapp-chatgpt exited with code 0
+
+# 2025-01-19 08:09:15.989027
++when running docker container, i got this error. do not add, read or edit package-lock.json for this code fix
++
++whatsapp-chatgpt | > whatsapp-chatgpt@1.0.0 start whatsapp-chatgpt | > npx vite-node src/index.ts
++whatsapp-chatgpt |
++whatsapp-chatgpt | npm warn exec The following package was not found and will be installed: vite-node@3.0.2
++whatsapp-chatgpt | whatsapp-chatgpt | Whatsapp ChatGPT & DALL-E whatsapp-chatgpt | |-------------------------------------------------------------------------------------------------|
++whatsapp-chatgpt | | A Whatsapp bot that uses OpenAI's ChatGPT and DALL-E to generate text and images from a prompt. |
++whatsapp-chatgpt | |-------------------------------------------------------------------------------------------------|
++whatsapp-chatgpt |
++whatsapp-chatgpt | /app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/lib/cjs/puppeteer/node/BrowserRunner.js:299 whatsapp-chatgpt | reject(new Error([ whatsapp-chatgpt | ^
++whatsapp-chatgpt |
++whatsapp-chatgpt | Error: Failed to launch the browser process!
++whatsapp-chatgpt | /usr/bin/chromium: 77: .: cannot open /etc/chromium.d/*: No such file
++whatsapp-chatgpt |
++whatsapp-chatgpt | whatsapp-chatgpt | TROUBLESHOOTING: https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md
++whatsapp-chatgpt |
++whatsapp-chatgpt | at onClose (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:327:9)
++whatsapp-chatgpt | at Interface.<anonymous> (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:313:16)
++whatsapp-chatgpt | at Interface.emit (node:events:529:35) whatsapp-chatgpt | at Interface.close (node:internal/readline/interface:534:10)
++whatsapp-chatgpt | at Socket.onend (node:internal/readline/interface:260:10)
++whatsapp-chatgpt | at Socket.emit (node:events:529:35)
++whatsapp-chatgpt | at endReadableNT (node:internal/streams/readable:1400:12) whatsapp-chatgpt | at processTicksAndRejections (node:internal/process/task_queues:82:21)
++whatsapp-chatgpt |
++whatsapp-chatgpt | Node.js v18.20.5
++whatsapp-chatgpt | npm notice
++whatsapp-chatgpt | npm notice New major version of npm available! 10.8.2 → 11.0.0 whatsapp-chatgpt | npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.0.0
++whatsapp-chatgpt | npm notice To update run: npm install -g npm@11.0.0
++whatsapp-chatgpt | npm notice whatsapp-chatgpt exited with code 0
+
+# 2025-01-19 08:10:49.689650
++
++when running docker container, i got this error. do not add, read or edit "package-lock.json" file for this code fix
++
++/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/lib/cjs/puppeteer/node/BrowserRunner.js:299
++2025-01-18 23:44:50             reject(new Error([
++2025-01-18 23:44:50                    ^
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 Error: Failed to launch the browser process!
++2025-01-18 23:44:50 /usr/bin/chromium: 77: .: cannot open /etc/chromium.d/*: No such file
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 TROUBLESHOOTING: https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md
++2025-01-18 23:44:50 
++2025-01-18 23:44:50     at onClose (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:327:9)
++2025-01-18 23:44:50     at Interface.<anonymous> (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:313:16)
++2025-01-18 23:44:50     at Interface.emit (node:events:529:35)
++2025-01-18 23:44:50     at Interface.close (node:internal/readline/interface:534:10)
++2025-01-18 23:44:50     at Socket.onend (node:internal/readline/interface:260:10)
++2025-01-18 23:44:50     at Socket.emit (node:events:529:35)
++2025-01-18 23:44:50     at endReadableNT (node:internal/streams/readable:1400:12)
++2025-01-18 23:44:50     at processTicksAndRejections (node:internal/process/task_queues:82:21)
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 Node.js v18.20.5
+
+# 2025-01-19 08:10:49.690652
++
++when running docker container, i got this error. do not add, read or edit "package-lock.json" file for this code fix
++
++/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/lib/cjs/puppeteer/node/BrowserRunner.js:299
++2025-01-18 23:44:50             reject(new Error([
++2025-01-18 23:44:50                    ^
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 Error: Failed to launch the browser process!
++2025-01-18 23:44:50 /usr/bin/chromium: 77: .: cannot open /etc/chromium.d/*: No such file
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 TROUBLESHOOTING: https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md
++2025-01-18 23:44:50 
++2025-01-18 23:44:50     at onClose (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:327:9)
++2025-01-18 23:44:50     at Interface.<anonymous> (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:313:16)
++2025-01-18 23:44:50     at Interface.emit (node:events:529:35)
++2025-01-18 23:44:50     at Interface.close (node:internal/readline/interface:534:10)
++2025-01-18 23:44:50     at Socket.onend (node:internal/readline/interface:260:10)
++2025-01-18 23:44:50     at Socket.emit (node:events:529:35)
++2025-01-18 23:44:50     at endReadableNT (node:internal/streams/readable:1400:12)
++2025-01-18 23:44:50     at processTicksAndRejections (node:internal/process/task_queues:82:21)
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 Node.js v18.20.5
+
+# 2025-01-19 08:12:36.611896
++
++when running docker container, i got this error. DO NOT add, read or edit package-lock.json file for this code fix
++
++/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/lib/cjs/puppeteer/node/BrowserRunner.js:299
++2025-01-18 23:44:50             reject(new Error([
++2025-01-18 23:44:50                    ^
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 Error: Failed to launch the browser process!
++2025-01-18 23:44:50 /usr/bin/chromium: 77: .: cannot open /etc/chromium.d/*: No such file
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 TROUBLESHOOTING: https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md
++2025-01-18 23:44:50 
++2025-01-18 23:44:50     at onClose (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:327:9)
++2025-01-18 23:44:50     at Interface.<anonymous> (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:313:16)
++2025-01-18 23:44:50     at Interface.emit (node:events:529:35)
++2025-01-18 23:44:50     at Interface.close (node:internal/readline/interface:534:10)
++2025-01-18 23:44:50     at Socket.onend (node:internal/readline/interface:260:10)
++2025-01-18 23:44:50     at Socket.emit (node:events:529:35)
++2025-01-18 23:44:50     at endReadableNT (node:internal/streams/readable:1400:12)
++2025-01-18 23:44:50     at processTicksAndRejections (node:internal/process/task_queues:82:21)
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 Node.js v18.20.5
+
+# 2025-01-19 08:12:36.612897
++
++when running docker container, i got this error. DO NOT add, read or edit package-lock.json file for this code fix
++
++/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/lib/cjs/puppeteer/node/BrowserRunner.js:299
++2025-01-18 23:44:50             reject(new Error([
++2025-01-18 23:44:50                    ^
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 Error: Failed to launch the browser process!
++2025-01-18 23:44:50 /usr/bin/chromium: 77: .: cannot open /etc/chromium.d/*: No such file
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 TROUBLESHOOTING: https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md
++2025-01-18 23:44:50 
++2025-01-18 23:44:50     at onClose (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:327:9)
++2025-01-18 23:44:50     at Interface.<anonymous> (/app/node_modules/whatsapp-web.js/node_modules/puppeteer-core/src/node/BrowserRunner.ts:313:16)
++2025-01-18 23:44:50     at Interface.emit (node:events:529:35)
++2025-01-18 23:44:50     at Interface.close (node:internal/readline/interface:534:10)
++2025-01-18 23:44:50     at Socket.onend (node:internal/readline/interface:260:10)
++2025-01-18 23:44:50     at Socket.emit (node:events:529:35)
++2025-01-18 23:44:50     at endReadableNT (node:internal/streams/readable:1400:12)
++2025-01-18 23:44:50     at processTicksAndRejections (node:internal/process/task_queues:82:21)
++2025-01-18 23:44:50 
++2025-01-18 23:44:50 Node.js v18.20.5
+
+# 2025-01-19 08:47:36.334873
++compare this with the current dockerfile. what's the difference ?
++# Build stage
++FROM node:18-bullseye-slim AS build
++
++WORKDIR /app
++
++# Copy package files
++COPY package.json package-lock.json ./
++
++# Install dependencies with cleanup
++RUN apt-get update && \
++    apt-get install -y --no-install-recommends \
++    chromium \
++    chromium-common \
++    chromium-sandbox \
++    libatk-bridge2.0-0 \
++    libgtk-3-0 \
++    libnss3 \
++    libxss1 \
++    libasound2 \
++    libxtst6 \
++    fonts-liberation \
++    libappindicator3-1 \
++    xdg-utils \
++    ffmpeg && \
++    apt-get clean && \
++    rm -rf /var/lib/apt/lists/* && \
++    npm install --production
++
++# Runtime stage
++FROM node:18-bullseye-slim
++
++# Install required libraries
++RUN apt-get update && \
++    apt-get install -y --no-install-recommends \
++    libdbus-1-3 libx11-6 libx11-xcb1 libxcomposite1 \
++    libxdamage1 libxext6 libxfixes3 libxrandr2 libgbm1 \
++    libasound2 libatk1.0-0 libatk-bridge2.0-0 libgtk-3-0 && \
++    apt-get clean && \
++    rm -rf /var/lib/apt/lists/*
++
++# Create non-root user
++RUN groupadd -r appuser && \
++    useradd -r -g appuser -d /app -s /bin/bash appuser
++
++# Copy dependencies from build stage
++COPY --from=build /usr/bin/chromium /usr/bin/chromium
++COPY --from=build /usr/lib/chromium /usr/lib/chromium
++COPY --from=build /usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
++COPY --from=build /usr/share/fonts /usr/share/fonts
++COPY --from=build /usr/bin/ffmpeg /usr/bin/ffmpeg
++COPY --from=build /etc/chromium /etc/chromium
++COPY --from=build /etc/chromium.d/ /etc/chromium.d/
++
++WORKDIR /app
++
++# Copy application files
++COPY --from=build /app/node_modules ./node_modules
++COPY --chown=appuser:appuser . .
++
++
++# Environment variables
++ENV OPENAI_TIMEOUT 30000
++ENV OPENAI_MAX_RETRIES 5
++ENV OPENAI_GPT_MODEL "gpt-4o"
++ENV MAX_MODEL_TOKENS 2000
++ENV PREFIX_ENABLED ""
++ENV PREFIX_SKIPPED_FOR_ME true
++ENV GPT_PREFIX "!gpt"
++ENV DALLE_PREFIX "!dalle"
++ENV RESET_PREFIX "!reset"
++ENV AI_CONFIG_PREFIX "!config"
++ENV GROUPCHATS_ENABLED true
++ENV MODERATION_ENABLED true
++ENV CUSTOM_MODERATION_PARAMS '{"political_content":true,"misinformation":true,"hate_speech":true,"explicit_content":true}'
++ENV WHITELISTED_PHONE_NUMBERS ""
++ENV WHITELISTED_ENABLED false
++ENV HUGGINGFACE_API_TOKEN ""
++ENV WHISPER_API_URL "https://transcribe.whisperapi.com"
++ENV TRANSCRIPTION_ENABLED true
++ENV TRANSCRIPTION_MODE "openai"
++ENV TRANSCRIPTION_LANGUAGE ""
++ENV TTS_ENABLED false
++ENV TTS_TRANSCRIPTION_RESPONSE_ENABLED true
++ENV TTS_MODE "speech-api"
++ENV AWS_REGION "eu-central-1"
++ENV AWS_POLLY_VOICE_ID "Joanna"
++ENV AWS_POLLY_VOICE_ENGINE "standard"
++ENV NODE_ENV production
++ENV CHROME_BIN /usr/bin/chromium
++ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
++ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium
++ENV CHROME_PATH /usr/bin/chromium
++
++# Set permissions
++RUN chown -R appuser:appuser /app && \
++    chmod -R 755 /app
++
++USER appuser
++
++HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
++    CMD curl -f http://localhost:3000/health || exit 1
++
++CMD ["npm", "run", "start"]
++
+
+# 2025-01-19 08:47:36.337875
++compare this with the current dockerfile. what's the difference ?
++# Build stage
++FROM node:18-bullseye-slim AS build
++
++WORKDIR /app
++
++# Copy package files
++COPY package.json package-lock.json ./
++
++# Install dependencies with cleanup
++RUN apt-get update && \
++    apt-get install -y --no-install-recommends \
++    chromium \
++    chromium-common \
++    chromium-sandbox \
++    libatk-bridge2.0-0 \
++    libgtk-3-0 \
++    libnss3 \
++    libxss1 \
++    libasound2 \
++    libxtst6 \
++    fonts-liberation \
++    libappindicator3-1 \
++    xdg-utils \
++    ffmpeg && \
++    apt-get clean && \
++    rm -rf /var/lib/apt/lists/* && \
++    npm install --production
++
++# Runtime stage
++FROM node:18-bullseye-slim
++
++# Install required libraries
++RUN apt-get update && \
++    apt-get install -y --no-install-recommends \
++    libdbus-1-3 libx11-6 libx11-xcb1 libxcomposite1 \
++    libxdamage1 libxext6 libxfixes3 libxrandr2 libgbm1 \
++    libasound2 libatk1.0-0 libatk-bridge2.0-0 libgtk-3-0 && \
++    apt-get clean && \
++    rm -rf /var/lib/apt/lists/*
++
++# Create non-root user
++RUN groupadd -r appuser && \
++    useradd -r -g appuser -d /app -s /bin/bash appuser
++
++# Copy dependencies from build stage
++COPY --from=build /usr/bin/chromium /usr/bin/chromium
++COPY --from=build /usr/lib/chromium /usr/lib/chromium
++COPY --from=build /usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
++COPY --from=build /usr/share/fonts /usr/share/fonts
++COPY --from=build /usr/bin/ffmpeg /usr/bin/ffmpeg
++COPY --from=build /etc/chromium /etc/chromium
++COPY --from=build /etc/chromium.d/ /etc/chromium.d/
++
++WORKDIR /app
++
++# Copy application files
++COPY --from=build /app/node_modules ./node_modules
++COPY --chown=appuser:appuser . .
++
++
++# Environment variables
++ENV OPENAI_TIMEOUT 30000
++ENV OPENAI_MAX_RETRIES 5
++ENV OPENAI_GPT_MODEL "gpt-4o"
++ENV MAX_MODEL_TOKENS 2000
++ENV PREFIX_ENABLED ""
++ENV PREFIX_SKIPPED_FOR_ME true
++ENV GPT_PREFIX "!gpt"
++ENV DALLE_PREFIX "!dalle"
++ENV RESET_PREFIX "!reset"
++ENV AI_CONFIG_PREFIX "!config"
++ENV GROUPCHATS_ENABLED true
++ENV MODERATION_ENABLED true
++ENV CUSTOM_MODERATION_PARAMS '{"political_content":true,"misinformation":true,"hate_speech":true,"explicit_content":true}'
++ENV WHITELISTED_PHONE_NUMBERS ""
++ENV WHITELISTED_ENABLED false
++ENV HUGGINGFACE_API_TOKEN ""
++ENV WHISPER_API_URL "https://transcribe.whisperapi.com"
++ENV TRANSCRIPTION_ENABLED true
++ENV TRANSCRIPTION_MODE "openai"
++ENV TRANSCRIPTION_LANGUAGE ""
++ENV TTS_ENABLED false
++ENV TTS_TRANSCRIPTION_RESPONSE_ENABLED true
++ENV TTS_MODE "speech-api"
++ENV AWS_REGION "eu-central-1"
++ENV AWS_POLLY_VOICE_ID "Joanna"
++ENV AWS_POLLY_VOICE_ENGINE "standard"
++ENV NODE_ENV production
++ENV CHROME_BIN /usr/bin/chromium
++ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
++ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium
++ENV CHROME_PATH /usr/bin/chromium
++
++# Set permissions
++RUN chown -R appuser:appuser /app && \
++    chmod -R 755 /app
++
++USER appuser
++
++HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
++    CMD curl -f http://localhost:3000/health || exit 1
++
++CMD ["npm", "run", "start"]
++
+
+# 2025-01-19 08:49:58.104793
++is there any changes required for the current dockerfile?
+
+# 2025-01-19 08:49:58.105793
++is there any changes required for the current dockerfile?
+
+# 2025-01-19 08:52:38.769593
++this is the current docker console log. notice that when i try to stop the container at 2025-01-19 08:50:50  there's some npm error. 
++2025-01-19 08:15:35 npm warn exec The following package was not found and will be installed: vite-node@3.0.2
++2025-01-19 08:15:33 
++2025-01-19 08:15:33 > whatsapp-chatgpt@1.0.0 start
++2025-01-19 08:15:33 > npx vite-node src/index.ts
++2025-01-19 08:15:33 
++2025-01-19 08:15:45 
++2025-01-19 08:15:45  Whatsapp ChatGPT & DALL-E 
++2025-01-19 08:15:45 |-------------------------------------------------------------------------------------------------|
++2025-01-19 08:15:45 | A Whatsapp bot that uses OpenAI's ChatGPT and DALL-E to generate text and images from a prompt. |
++2025-01-19 08:15:45 |-------------------------------------------------------------------------------------------------|
++2025-01-19 08:15:45 
++2025-01-19 08:50:50 npm error path /app
++2025-01-19 08:50:50 npm error command failed
++2025-01-19 08:50:50 npm error signal SIGTERM
++2025-01-19 08:50:50 npm error command sh -c npx vite-node src/index.ts
++2025-01-19 08:50:50 npm notice
++2025-01-19 08:50:50 npm notice New major version of npm available! 10.8.2 -> 11.0.0
++2025-01-19 08:50:50 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.0.0
++2025-01-19 08:50:50 npm notice To update run: npm install -g npm@11.0.0
++2025-01-19 08:50:50 npm notice
++2025-01-19 08:50:50 npm error A complete log of this run can be found in: /app/.npm/_logs/2025-01-19T00_15_33_543Z-debug-0.log
+
+# 2025-01-19 08:52:38.771596
++this is the current docker console log. notice that when i try to stop the container at 2025-01-19 08:50:50  there's some npm error. 
++2025-01-19 08:15:35 npm warn exec The following package was not found and will be installed: vite-node@3.0.2
++2025-01-19 08:15:33 
++2025-01-19 08:15:33 > whatsapp-chatgpt@1.0.0 start
++2025-01-19 08:15:33 > npx vite-node src/index.ts
++2025-01-19 08:15:33 
++2025-01-19 08:15:45 
++2025-01-19 08:15:45  Whatsapp ChatGPT & DALL-E 
++2025-01-19 08:15:45 |-------------------------------------------------------------------------------------------------|
++2025-01-19 08:15:45 | A Whatsapp bot that uses OpenAI's ChatGPT and DALL-E to generate text and images from a prompt. |
++2025-01-19 08:15:45 |-------------------------------------------------------------------------------------------------|
++2025-01-19 08:15:45 
++2025-01-19 08:50:50 npm error path /app
++2025-01-19 08:50:50 npm error command failed
++2025-01-19 08:50:50 npm error signal SIGTERM
++2025-01-19 08:50:50 npm error command sh -c npx vite-node src/index.ts
++2025-01-19 08:50:50 npm notice
++2025-01-19 08:50:50 npm notice New major version of npm available! 10.8.2 -> 11.0.0
++2025-01-19 08:50:50 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.0.0
++2025-01-19 08:50:50 npm notice To update run: npm install -g npm@11.0.0
++2025-01-19 08:50:50 npm notice
++2025-01-19 08:50:50 npm error A complete log of this run can be found in: /app/.npm/_logs/2025-01-19T00_15_33_543Z-debug-0.log
+
+# 2025-01-19 09:11:36.593975
++this is the docker log. It's just stuck. chromium never ran?
++2025-01-19 08:56:26 
++2025-01-19 08:56:26 > whatsapp-chatgpt@1.0.0 start
++2025-01-19 08:56:26 > npx vite-node src/index.ts
++2025-01-19 08:56:26 
++2025-01-19 08:56:38 
++2025-01-19 08:56:38  Whatsapp ChatGPT & DALL-E 
++2025-01-19 08:56:38 |-------------------------------------------------------------------------------------------------|
++2025-01-19 08:56:38 | A Whatsapp bot that uses OpenAI's ChatGPT and DALL-E to generate text and images from a prompt. |
++2025-01-19 08:56:38 |-------------------------------------------------------------------------------------------------|
++2025-01-19 08:56:38 
++2025-01-19 08:56:27 npm warn exec The following package was not found and will be installed: vite-node@3.0.2
+
+# 2025-01-19 09:11:36.595672
++this is the docker log. It's just stuck. chromium never ran?
++2025-01-19 08:56:26 
++2025-01-19 08:56:26 > whatsapp-chatgpt@1.0.0 start
++2025-01-19 08:56:26 > npx vite-node src/index.ts
++2025-01-19 08:56:26 
++2025-01-19 08:56:38 
++2025-01-19 08:56:38  Whatsapp ChatGPT & DALL-E 
++2025-01-19 08:56:38 |-------------------------------------------------------------------------------------------------|
++2025-01-19 08:56:38 | A Whatsapp bot that uses OpenAI's ChatGPT and DALL-E to generate text and images from a prompt. |
++2025-01-19 08:56:38 |-------------------------------------------------------------------------------------------------|
++2025-01-19 08:56:38 
++2025-01-19 08:56:27 npm warn exec The following package was not found and will be installed: vite-node@3.0.2
+
+# 2025-01-19 09:15:47.102142
++can you try again? but DO NOT ADD package-lock.json to the chat or read it or edit it. 
+
+# 2025-01-19 09:15:47.102142
++can you try again? but DO NOT ADD package-lock.json to the chat or read it or edit it. 
