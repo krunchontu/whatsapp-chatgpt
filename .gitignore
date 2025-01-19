@@ -598,3 +598,5 @@ MigrationBackup/
 .aider.chat.history.md
 .aider.input.history
 replace*.*
+*.history
+/.aider.tags.cache.v3
