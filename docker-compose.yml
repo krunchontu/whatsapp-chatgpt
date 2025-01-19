@@ -32,10 +32,8 @@ services:
             - whatsapp-net
         env_file:
             - .env
-        command: >
-            sh -c "mkdir -p /app/session &&
-            npm run start"
-        user: "1000:1000"
+        command: npm run start
+        user: "1001:1001"
 
 volumes:
     session-data:

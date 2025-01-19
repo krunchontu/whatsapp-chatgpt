@@ -1,4 +1,5 @@
-# Build stage
+# Build stage with cache busting
+ARG CACHE_BUST=1
 FROM node:18-bullseye-slim AS build
 
 WORKDIR /app
@@ -6,22 +7,23 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies with cleanup
-RUN apt-get update && \
+# Install dependencies with cleanup and cache busting
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
-    chromium \
-    chromium-common \
-    chromium-sandbox \
-    libatk-bridge2.0-0 \
-    libgtk-3-0 \
-    libnss3 \
-    libxss1 \
-    libasound2 \
-    libxtst6 \
-    fonts-liberation \
-    libappindicator3-1 \
-    xdg-utils \
-    ffmpeg && \
+        chromium \
+        chromium-common \
+        chromium-sandbox \
+        libatk-bridge2.0-0 \
+        libgtk-3-0 \
+        libnss3 \
+        libxss1 \
+        libasound2 \
+        libxtst6 \
+        fonts-liberation \
+        libappindicator3-1 \
+        xdg-utils \
+        ffmpeg && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     npm install --production
@@ -61,9 +63,9 @@ RUN apt-get update && \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Create non-root user
-RUN groupadd -r appuser && \
-    useradd -r -g appuser -d /app -s /bin/bash appuser
+# Create group 'appuser' with GID 1001 and add user 'appuser'
+RUN groupadd -g 1001 appuser && \
+    useradd -r -u 1001 -g appuser -d /app -s /bin/bash appuser
 
 # Copy dependencies from build stage
 COPY --from=build /usr/bin/chromium /usr/bin/chromium
@@ -79,7 +81,6 @@ WORKDIR /app
 # Copy application files
 COPY --from=build /app/node_modules ./node_modules
 COPY --chown=appuser:appuser . .
-
 
 # Environment variables
 ENV OPENAI_TIMEOUT 30000
@@ -119,10 +120,6 @@ RUN mkdir -p /app/session && \
     chown appuser:appuser /app/session && \
     chmod 1777 /app/session
 
-# Copy application files
-COPY --from=build /app/node_modules ./node_modules
-COPY --chown=appuser:appuser . .
-
 # Verify and fix permissions
 RUN chown -R appuser:appuser /app && \
     chmod -R 755 /app && \
@@ -132,8 +129,5 @@ USER appuser
 
 # Set 'tini' as the entrypoint
 ENTRYPOINT ["/usr/bin/tini", "--"]
-
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-    CMD curl -f http://localhost:3000/health || exit 1
 
 CMD ["npm", "run", "start"]
