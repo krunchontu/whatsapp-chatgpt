@@ -24,6 +24,12 @@ let botReadyTimestamp: Date | null = null;
 
 // Entrypoint
 const start = async () => {
+	console.debug("[DEBUG] Starting WhatsApp client...");
+	console.debug(`[DEBUG] Environment: 
+		CHROME_BIN: ${process.env.CHROME_BIN || "not set"}
+		SESSION_PATH: ${constants.sessionPath}
+		WA_VERSION: 2.2412.54`);
+
 	const wwebVersion = "2.2412.54";
 	cli.printIntro();
 
@@ -53,12 +59,16 @@ const start = async () => {
 
 	// Browser launch confirmation
 	client.on("browser_launched", () => {
+		const launchTime = new Date();
 		console.log("Chromium browser successfully launched");
+		console.debug(`[DEBUG] Browser launch time: ${launchTime.toISOString()}`);
 	});
 
 	// WhatsApp auth
 	client.on(Events.QR_RECEIVED, (qr: string) => {
+		const qrTime = new Date();
 		console.log("");
+		console.debug(`[DEBUG] QR received at: ${qrTime.toISOString()}`);
 		qrcode.toString(
 			qr,
 			{
@@ -83,7 +93,9 @@ const start = async () => {
 
 	// WhatsApp authenticated
 	client.on(Events.AUTHENTICATED, () => {
+		const authTime = new Date();
 		cli.printAuthenticated();
+		console.debug(`[DEBUG] Authenticated at: ${authTime.toISOString()}`);
 	});
 
 	// WhatsApp authentication failure
@@ -98,9 +110,21 @@ const start = async () => {
 
 		// Set bot ready timestamp
 		botReadyTimestamp = new Date();
+		console.debug(`[DEBUG] Bot ready at: ${botReadyTimestamp.toISOString()}`);
 
-		initAiConfig();
-		initOpenAI();
+		try {
+			initAiConfig();
+			console.debug("[DEBUG] AI config initialized successfully");
+		} catch (error) {
+			console.error("[DEBUG] Failed to initialize AI config:", error);
+		}
+
+		try {
+			initOpenAI();
+			console.debug("[DEBUG] OpenAI initialized successfully");
+		} catch (error) {
+			console.error("[DEBUG] Failed to initialize OpenAI:", error);
+		}
 
 		// Command modules are registered in initAiConfig()
 	});
