@@ -34,6 +34,8 @@ services:
             - .env
         command: npm run start
         user: "1001:1001"
+        devices:
+            - /dev/snd:/dev/snd
 
 volumes:
     session-data:
