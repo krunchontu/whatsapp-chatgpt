@@ -48,6 +48,7 @@ COPY --from=build /usr/lib/chromium /usr/lib/chromium
 COPY --from=build /usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
 COPY --from=build /usr/share/fonts /usr/share/fonts
 COPY --from=build /usr/bin/ffmpeg /usr/bin/ffmpeg
+COPY --from=build /etc/chromium /etc/chromium
 
 WORKDIR /app
 
