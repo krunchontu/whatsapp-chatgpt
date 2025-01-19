@@ -45,8 +45,33 @@ const start = async () => {
 				"--no-first-run",
 				"--no-zygote",
 				"--single-process",
-				"--disable-gpu"
-			]
+				"--disable-gpu",
+				"--remote-debugging-port=9222",
+				"--disable-software-rasterizer",
+				"--disable-background-networking",
+				"--disable-background-timer-throttling",
+				"--disable-breakpad",
+				"--disable-client-side-phishing-detection",
+				"--disable-component-update",
+				"--disable-default-apps",
+				"--disable-domain-reliability",
+				"--disable-extensions",
+				"--disable-features=AudioServiceOutOfProcess",
+				"--disable-hang-monitor",
+				"--disable-ipc-flooding-protection",
+				"--disable-popup-blocking",
+				"--disable-prompt-on-repost",
+				"--disable-renderer-backgrounding",
+				"--disable-sync",
+				"--force-color-profile=srgb",
+				"--metrics-recording-only",
+				"--safebrowsing-disable-auto-update",
+				"--enable-automation",
+				"--password-store=basic",
+				"--use-mock-keychain",
+				"--headless=new"
+			],
+			dumpio: true
 		},
 		authStrategy: new LocalAuth({
 			dataPath: constants.sessionPath

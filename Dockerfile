@@ -114,9 +114,19 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium
 ENV CHROME_PATH /usr/bin/chromium
 
-# Set permissions
+# Create session directory with correct permissions before copying
+RUN mkdir -p /app/session && \
+    chown appuser:appuser /app/session && \
+    chmod 1777 /app/session
+
+# Copy application files
+COPY --from=build /app/node_modules ./node_modules
+COPY --chown=appuser:appuser . .
+
+# Verify and fix permissions
 RUN chown -R appuser:appuser /app && \
-    chmod -R 755 /app
+    chmod -R 755 /app && \
+    chmod 1777 /app/session
 
 USER appuser
 
