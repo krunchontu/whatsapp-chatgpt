@@ -600,3 +600,5 @@ MigrationBackup/
 replace*.*
 *.history
 /.aider.tags.cache.v3
+.aider.input.history
+.aider.tags.cache.v3/cache.db
