@@ -78,7 +78,7 @@ async function handleIncomingMessage(message: Message) {
 		const transcriptionMode = getConfig("transcription", "mode");
 		cli.print(`[Transcription] Transcribing audio with "${transcriptionMode}" mode...`);
 
-		let res;
+		let res: { text: string; language: string } | null = null;
 		switch (transcriptionMode) {
 			case TranscriptionMode.Local:
 				res = await transcribeAudioLocal(mediaBuffer);
@@ -94,6 +94,10 @@ async function handleIncomingMessage(message: Message) {
 				break;
 			default:
 				cli.print(`[Transcription] Unsupported transcription mode: ${transcriptionMode}`);
+		}
+		if (!res) {
+			message.reply("I couldn't understand what you said.");
+			return;
 		}
 		const { text: transcribedText, language: transcribedLanguage } = res;
 

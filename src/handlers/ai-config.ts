@@ -25,7 +25,7 @@ const initAiConfig = () => {
 	[ChatModule, GeneralModule, GptModule, TranscriptionModule, TTSModule, StableDiffusionModule, TranslateModule].forEach((module) => {
 		aiConfig.commandsMap[module.key] = module.register();
 	});
-	
+
 	// Ensure size compatibility based on the model
 	if (aiConfig.dalle.model === "dall-e-3") {
 		aiConfig.dalle.size = dalleImageSize["1024x1024"];
@@ -47,8 +47,8 @@ const handleMessageAIConfig = async (message: Message, prompt: any) => {
 		if (args.length == 1 || prompt === "help") {
 			// Available commands
 			let helpMessage = "Available commands:\n";
-			for (let target in aiConfigTarget) {
-				for (let type in aiConfigTypes[target]) {
+			for (const target in aiConfigTarget) {
+				for (const type in (aiConfigTypes as any)[target]) {
 					helpMessage += `\t${config.aiConfigPrefix} ${target} ${type} <value> - Set ${target} ${type} to <value>\n`;
 				}
 			}
@@ -60,9 +60,9 @@ const handleMessageAIConfig = async (message: Message, prompt: any) => {
 
 			// Available values
 			helpMessage += "\nAvailable values:\n";
-			for (let target in aiConfigTarget) {
-				for (let type in aiConfigTypes[target]) {
-					helpMessage += `\t${target} ${type}: ${Object.keys(aiConfigValues[target][type]).join(", ")}\n`;
+			for (const target in aiConfigTarget) {
+				for (const type in (aiConfigTypes as any)[target]) {
+					helpMessage += `\t${target} ${type}: ${Object.keys((aiConfigValues as any)[target][type]).join(", ")}\n`;
 				}
 			}
 			for (let module in aiConfig.commandsMap) {
@@ -106,17 +106,22 @@ const handleMessageAIConfig = async (message: Message, prompt: any) => {
 			return;
 		}
 
-		if (typeof aiConfigTypes[target] !== "object" || !(type in aiConfigTypes[target])) {
-			message.reply("Invalid type, please use one of the following: " + Object.keys(aiConfigTypes[target]).join(", "));
+		if (typeof (aiConfigTypes as any)[target] !== "object" || !(type in (aiConfigTypes as any)[target])) {
+			message.reply("Invalid type, please use one of the following: " + Object.keys((aiConfigTypes as any)[target]).join(", "));
 			return;
 		}
 
-		if (value === undefined || (typeof aiConfigValues[target][type] === "object" && !(value in aiConfigValues[target][type]))) {
-			message.reply("Invalid value, please use one of the following: " + Object.keys(aiConfigValues[target][type]).join(", "));
+		if (
+			value === undefined ||
+			(typeof (aiConfigValues as any)[target][type] === "object" && !(value in (aiConfigValues as any)[target][type]))
+		) {
+			message.reply(
+				"Invalid value, please use one of the following: " + Object.keys((aiConfigValues as any)[target][type]).join(", ")
+			);
 			return;
 		}
 
-		aiConfig[target][type] = value;
+		(aiConfig as any)[target][type] = value;
 
 		message.reply("Successfully set " + target + " " + type + " to " + value);
 	} catch (error: any) {
@@ -136,7 +141,7 @@ export function getConfig(target: string, type: string): any {
 		}
 		return aiConfig.commandsMap[target][type].data;
 	}
-	return aiConfig[target][type];
+	return (aiConfig as any)[target][type];
 }
 
 export function executeCommand(target: string, type: string, message: Message, value?: string | undefined) {
@@ -148,19 +153,14 @@ export function executeCommand(target: string, type: string, message: Message, v
 }
 
 const handleDeleteConversation = async (message: Message) => {
-    try {
-        // Clear conversation context
-        aiConfig.commandsMap.chat = ChatModule.register();
-        message.reply("Conversation context has been reset!");
-    } catch (error: any) {
-        console.error("An error occurred while resetting conversation", error);
-        message.reply("An error occurred while resetting conversation. Please try again.");
-    }
+	try {
+		// Clear conversation context
+		aiConfig.commandsMap.chat = ChatModule.register();
+		message.reply("Conversation context has been reset!");
+	} catch (error: any) {
+		console.error("An error occurred while resetting conversation", error);
+		message.reply("An error occurred while resetting conversation. Please try again.");
+	}
 };
 
-export { 
-    aiConfig, 
-    handleMessageAIConfig, 
-    initAiConfig,
-    handleDeleteConversation 
-};
+export { aiConfig, handleMessageAIConfig, initAiConfig, handleDeleteConversation };

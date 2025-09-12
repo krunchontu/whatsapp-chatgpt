@@ -5,7 +5,7 @@
 	"main": "src/index.ts",
 	"author": "Askrella Software Agency UG (haftungsbeschränkt)",
 	"scripts": {
-		"start": "npx vite-node src/index.ts",
+		"start": "npx vite-node --tsconfig tsconfig.json src/index.ts",
 		"format": "prettier --write ./src",
 		"format:check": "prettier --check ./src"
 	},
@@ -43,6 +43,7 @@
 		"@types/qrcode": "^1.5.2",
 		"prettier": "^3.0.3",
 		"rimraf": "^6.0.1",
+		"typescript": "^5.9.2",
 		"vite": "^5.2.0",
 		"vite-node": "^1.0.2"
 	}

@@ -42,9 +42,9 @@ const settings: ICommandDefinition = {
 
 		response += `\n\nStatic settings:`;
 
-		for (let target in aiConfigTarget) {
-			for (let type in aiConfigTypes[target]) {
-				response += `\n${target} ${type}: ${aiConfig[target][type]}`;
+		for (const target in aiConfigTarget) {
+			for (const type in (aiConfigTypes as any)[target]) {
+				response += `\n${target} ${type}: ${(aiConfig as any)[target][type]}`;
 			}
 		}
 
@@ -61,12 +61,11 @@ const settings: ICommandDefinition = {
 			"promptModerationBlacklistedCategories",
 			"ttsMode"
 		].forEach((field) => {
-			response += `\n${field}: ${config[field]}`;
+			response += `\n${field}: ${(config as any)[field]}`;
 		});
 		message.reply(response);
 	}
 };
-
 
 const whitelist: ICommandDefinition = {
 	help: "<value> - Set whitelisted phone numbers",

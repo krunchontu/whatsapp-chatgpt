@@ -26,12 +26,12 @@ async function transcribeAudioLocal(audioBuffer: Buffer): Promise<{ text: string
 
 	// Return parsed text and language
 	return {
-		text: parseTextAfterTimeFrame(output),
-		language: parseDetectedLanguage(output)
+		text: parseTextAfterTimeFrame(output) ?? "",
+		language: parseDetectedLanguage(output) ?? ""
 	};
 }
 
-function parseDetectedLanguage(text) {
+function parseDetectedLanguage(text: string) {
 	const languageLine = text.split("\n")[1]; // Extract the second line of text
 	const languageMatch = languageLine.match(/Detected language:\s(.+)/); // Extract the detected language
 
@@ -42,7 +42,7 @@ function parseDetectedLanguage(text) {
 	return null; // Return null if match is not found
 }
 
-function parseTextAfterTimeFrame(text) {
+function parseTextAfterTimeFrame(text: string) {
 	const textMatch = text.match(/\[(\d{2}:\d{2}\.\d{3})\s-->\s(\d{2}:\d{2}\.\d{3})\]\s(.+)/); // Extract the text
 
 	if (textMatch) {

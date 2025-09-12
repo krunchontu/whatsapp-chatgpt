@@ -21,7 +21,7 @@ export default class BrowserAgentProvider {
 	// Always select highest probability word in search
 	model = new ChatOpenAI({ temperature: 0 });
 
-	fetch = async (query) => {
+	fetch = async (query: string): Promise<string> => {
 		const prompt = ChatPromptTemplate.fromMessages([
 			["system", "You are a helpful assistant that can access external tools."],
 			["human", "{input}"],

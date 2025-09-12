@@ -19,7 +19,7 @@ interface IConfig {
 	// Vision
 	visionEnabled: boolean;
 	visionModel: string;
-	visionDetailLevel: 'low' | 'high' | 'auto';
+	visionDetailLevel: "low" | "high" | "auto";
 	// OpenAI
 	openAIModel: string;
 	openAIAPIKeys: string[];
@@ -79,7 +79,7 @@ export const config: IConfig = {
 	// Vision
 	visionEnabled: getEnvBooleanWithDefault("VISION_ENABLED", true),
 	visionModel: process.env.VISION_MODEL || "gpt-4o",
-	visionDetailLevel: process.env.VISION_DETAIL_LEVEL || "auto",
+	visionDetailLevel: (process.env.VISION_DETAIL_LEVEL as "low" | "high" | "auto") || "auto",
 	// Moderation
 	moderationEnabled: getEnvBooleanWithDefault("MODERATION_ENABLED", true),
 	customModerationParams: {
@@ -209,16 +209,16 @@ function getEnvTTSMode(): TTSMode {
  * @returns The voice engine
  */
 function getEnvCustomModerationParams(): { [key: string]: boolean } {
-    const envValue = process.env.CUSTOM_MODERATION_PARAMS;
-    if (!envValue) {
-        return {
-            political_content: true,
-            misinformation: true,
-            hate_speech: true,
-            explicit_content: true
-        };
-    }
-    return JSON.parse(envValue);
+	const envValue = process.env.CUSTOM_MODERATION_PARAMS;
+	if (!envValue) {
+		return {
+			political_content: true,
+			misinformation: true,
+			hate_speech: true,
+			explicit_content: true
+		};
+	}
+	return JSON.parse(envValue);
 }
 
 function getEnvAWSPollyVoiceEngine(): AWSPollyEngine {

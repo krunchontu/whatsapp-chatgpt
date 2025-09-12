@@ -19,6 +19,7 @@ export const aiConfigValues = {
 export interface IAiConfig {
 	dalle: {
 		size: dalleImageSize;
+		model?: string;
 		quality?: "standard" | "hd";
 		style?: "vivid" | "natural";
 	};
