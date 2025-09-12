@@ -8,3 +8,10 @@ Verification:
 - `npm test` *(fails: Missing script "test")*
 - `npm run format`
 - `npm run format:check`
+[2025-09-12]
+### Tidy .gitignore
+- Removed redundant and unrelated patterns to simplify the file.
+Verification:
+- `git status --ignored`
+- `npm run format:check` *(fails: Code style issues found in 11 files)*
+- `npm test` *(fails: Missing script "test")*
