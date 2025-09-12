@@ -27,6 +27,10 @@ In the documentation you can find more information about how to install, configu
 
 <span style="font-size: 1.4rem;">➡️ https://askrella.github.io/whatsapp-chatgpt</span>
 
+## Environment Variables
+
+-   `SESSION_PATH`: Directory to store WhatsApp session data. Defaults to `./session`.
+
 ## Disclaimer
 
 The operations performed by this bot are not free. You will be charged by OpenAI for each request you make.

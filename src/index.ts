@@ -3,6 +3,7 @@ process.removeAllListeners("warning");
 
 import qrcode from "qrcode";
 import { Client, Message, Events, LocalAuth } from "whatsapp-web.js";
+import { existsSync, mkdirSync } from "fs";
 
 // Constants
 import constants from "./constants";
@@ -25,10 +26,14 @@ let botReadyTimestamp: Date | null = null;
 // Entrypoint
 const start = async () => {
 	console.debug("[DEBUG] Starting WhatsApp client...");
-	console.debug(`[DEBUG] Environment: 
-		CHROME_BIN: ${process.env.CHROME_BIN || "not set"}
-		SESSION_PATH: ${constants.sessionPath}
-		WA_VERSION: 2.2412.54`);
+	console.debug(`[DEBUG] Environment:
+                CHROME_BIN: ${process.env.CHROME_BIN || "not set"}
+                SESSION_PATH: ${constants.sessionPath}
+                WA_VERSION: 2.2412.54`);
+
+	if (!existsSync(constants.sessionPath)) {
+		mkdirSync(constants.sessionPath, { recursive: true });
+	}
 
 	const wwebVersion = "2.2412.54";
 	cli.printIntro();

@@ -23,3 +23,12 @@ Verification:
 - `git status --short`
 - `npm run format:check` *(fails: Code style issues found in 11 files)*
 - `npm test` *(fails: Missing script "test")*
+[2025-09-12]
+### Configurable session storage path
+- Replaced hard-coded sessionPath with `process.env.SESSION_PATH ?? "./session"` in `src/constants.ts`.
+- Ensured the session directory exists before starting the client in `src/index.ts`.
+- Documented the `SESSION_PATH` environment variable in `README.md`.
+Verification:
+- `npm run format`
+- `npm run format:check` *(fails: Code style issues found in 11 files)*
+- `npm test` *(fails: Missing script "test")*
