@@ -18,166 +18,167 @@ import { moderateIncomingPrompt } from "./moderation";
 import { aiConfig, getConfig } from "./ai-config";
 
 const handleMessageGPT = async (message: Message, prompt: string) => {
-    try {
-        cli.print(`[GPT] Received prompt from ${message.from}: ${prompt}`);
+	try {
+		cli.print(`[GPT] Received prompt from ${message.from}: ${prompt}`);
 
-        // Check for media attachments
-        console.log('[DEBUG] Checking for media attachments...');
-        console.log('[DEBUG] Message object:', JSON.stringify(message, null, 2));
-        
-        let media: MessageMedia | null = null;
-        if (message.hasMedia) {
-            try {
-                media = await message.downloadMedia();
-                console.log('[DEBUG] Downloaded media:', media ? 'exists' : 'null');
-                
-                if (!media?.data) {
-                    console.error('[DEBUG] Media download failed - empty data');
-                    throw new Error('Failed to download media - empty data');
-                }
-            } catch (error) {
-                console.error('[DEBUG] Media download failed:', error);
-                media = null;
-            }
-        } else {
-            console.log('[DEBUG] No media attached to message');
-        }
-        
-        const hasImage = media && isImageMedia(media) && media.data.length > 0;
-        console.log(`[DEBUG] Media found: ${!!media}`);
-        console.log(`[DEBUG] Is image: ${hasImage}`);
-        
-        // Check for image URLs in the message
-        const imageUrls = message.links
-            ?.filter(link => {
-                try {
-                    const url = new URL(link.link);
-                    return /\.(jpeg|jpg|gif|png|webp|webm)$/i.test(url.pathname);
-                } catch {
-                    return false;
-                }
-            })
-            .map(link => link.link) || [];
-        
-        console.log('[DEBUG] Found image URLs:', imageUrls);
+		// Check for media attachments
+		console.log("[DEBUG] Checking for media attachments...");
+		console.log("[DEBUG] Message object:", JSON.stringify(message, null, 2));
 
-        if (media) {
-            console.log(`[DEBUG] Media type: ${media.mimetype}`);
-            if (media.data) {
-                console.log(`[DEBUG] Media size: ${media.data.length} bytes`);
-                console.log(`[DEBUG] First 100 chars of media data: ${media.data.substring(0, 100)}`);
-            } else {
-                console.error('[DEBUG] Media has no data');
-            }
-        }
+		let media: MessageMedia | null = null;
+		if (message.hasMedia) {
+			try {
+				media = await message.downloadMedia();
+				console.log("[DEBUG] Downloaded media:", media ? "exists" : "null");
 
-        // Prompt Moderation
-        if (config.promptModerationEnabled) {
-            try {
-                console.log('[DEBUG] Running prompt moderation...');
-                await moderateIncomingPrompt(prompt);
-            } catch (error: any) {
-                console.error('[DEBUG] Prompt moderation failed:', error);
-                message.reply(error.message);
-                return;
-            }
-        }
+				if (!media?.data) {
+					console.error("[DEBUG] Media download failed - empty data");
+					throw new Error("Failed to download media - empty data");
+				}
+			} catch (error) {
+				console.error("[DEBUG] Media download failed:", error);
+				media = null;
+			}
+		} else {
+			console.log("[DEBUG] No media attached to message");
+		}
 
-        const start = Date.now();
+		const hasImage = media && isImageMedia(media) && media.data.length > 0;
+		console.log(`[DEBUG] Media found: ${!!media}`);
+		console.log(`[DEBUG] Is image: ${hasImage}`);
 
-        // Build messages array
-        const messages = [];
-        
-        // Add system prompt if configured
-        if (config.prePrompt?.trim()) {
-            console.log('[DEBUG] Adding system prompt');
-            messages.push({
-                role: 'system',
-                content: config.prePrompt
-            });
-        }
+		// Check for image URLs in the message
+		const imageUrls =
+			message.links
+				?.filter((link) => {
+					try {
+						const url = new URL(link.link);
+						return /\.(jpeg|jpg|gif|png|webp|webm)$/i.test(url.pathname);
+					} catch {
+						return false;
+					}
+				})
+				.map((link) => link.link) || [];
 
-        // Add user message with optional image
-        const content: Array<any> = [];
-        
-        if (prompt) {
-            console.log('[DEBUG] Adding text prompt:', prompt);
-            content.push({ type: 'text', text: prompt });
-        }
+		console.log("[DEBUG] Found image URLs:", imageUrls);
 
-        // Handle attached image
-        if (hasImage) {
-            console.log('[DEBUG] Processing attached image...');
-            try {
-                if (!media?.data) {
-                    throw new Error('No media data available');
-                }
-                const base64Image = await convertMediaToBase64(media);
-                console.log('[DEBUG] Image converted to base64, length:', base64Image.length);
-                
-                content.push({
-                    type: 'image_url',
-                    image_url: {
-                        url: base64Image,
-                        detail: config.visionDetailLevel
-                    }
-                });
-                console.log('[DEBUG] Image added to content with detail level:', config.visionDetailLevel);
-            } catch (error) {
-                console.error('[DEBUG] Image processing failed:', error);
-                throw new Error('Failed to process image');
-            }
-        }
+		if (media) {
+			console.log(`[DEBUG] Media type: ${media.mimetype}`);
+			if (media.data) {
+				console.log(`[DEBUG] Media size: ${media.data.length} bytes`);
+				console.log(`[DEBUG] First 100 chars of media data: ${media.data.substring(0, 100)}`);
+			} else {
+				console.error("[DEBUG] Media has no data");
+			}
+		}
 
-        // Handle image URLs
-        if (imageUrls.length > 0) {
-            console.log('[DEBUG] Processing image URLs...');
-            for (const url of imageUrls) {
-                content.push({
-                    type: 'image_url',
-                    image_url: {
-                        url: url,
-                        detail: config.visionDetailLevel
-                    }
-                });
-                console.log('[DEBUG] Added image URL to content:', url);
-            }
-        }
+		// Prompt Moderation
+		if (config.promptModerationEnabled) {
+			try {
+				console.log("[DEBUG] Running prompt moderation...");
+				await moderateIncomingPrompt(prompt);
+			} catch (error: any) {
+				console.error("[DEBUG] Prompt moderation failed:", error);
+				message.reply(error.message);
+				return;
+			}
+		}
 
-        messages.push({
-            role: 'user',
-            content: content
-        });
+		const start = Date.now();
 
-        console.log('[DEBUG] Final messages array:', JSON.stringify(messages, null, 2));
+		// Build messages array
+		const messages = [];
 
-        // Get response from OpenAI
-        console.log('[DEBUG] Sending request to OpenAI...');
-        const response = await chatCompletion(messages, {
-            model: config.visionEnabled && (hasImage || imageUrls.length > 0) ? config.visionModel : config.openAIModel,
-            temperature: 0.7
-        });
+		// Add system prompt if configured
+		if (config.prePrompt?.trim()) {
+			console.log("[DEBUG] Adding system prompt");
+			messages.push({
+				role: "system",
+				content: config.prePrompt
+			});
+		}
 
-        const end = Date.now() - start;
-        console.log(`[DEBUG] OpenAI response received in ${end}ms`);
+		// Add user message with optional image
+		const content: Array<any> = [];
 
-        cli.print(`[GPT] Answer to ${message.from}: ${response}  | OpenAI request took ${end}ms)`);
+		if (prompt) {
+			console.log("[DEBUG] Adding text prompt:", prompt);
+			content.push({ type: "text", text: prompt });
+		}
 
-        // TTS reply (Default: disabled)
-        if (getConfig("tts", "enabled")) {
-            console.log('[DEBUG] Sending TTS reply...');
-            sendVoiceMessageReply(message, response);
-            message.reply(response);
-            return;
-        }
+		// Handle attached image
+		if (hasImage) {
+			console.log("[DEBUG] Processing attached image...");
+			try {
+				if (!media?.data) {
+					throw new Error("No media data available");
+				}
+				const base64Image = await convertMediaToBase64(media);
+				console.log("[DEBUG] Image converted to base64, length:", base64Image.length);
 
-        // Default: Text reply
-        console.log('[DEBUG] Sending text reply...');
-        message.reply(response);
-    } catch (error: any) {
-        console.error("[DEBUG] An error occurred:", error);
-        message.reply("An error occurred, please contact the administrator. (" + error.message + ")");
-    }
+				content.push({
+					type: "image_url",
+					image_url: {
+						url: base64Image,
+						detail: config.visionDetailLevel
+					}
+				});
+				console.log("[DEBUG] Image added to content with detail level:", config.visionDetailLevel);
+			} catch (error) {
+				console.error("[DEBUG] Image processing failed:", error);
+				throw new Error("Failed to process image");
+			}
+		}
+
+		// Handle image URLs
+		if (imageUrls.length > 0) {
+			console.log("[DEBUG] Processing image URLs...");
+			for (const url of imageUrls) {
+				content.push({
+					type: "image_url",
+					image_url: {
+						url: url,
+						detail: config.visionDetailLevel
+					}
+				});
+				console.log("[DEBUG] Added image URL to content:", url);
+			}
+		}
+
+		messages.push({
+			role: "user",
+			content: content
+		});
+
+		console.log("[DEBUG] Final messages array:", JSON.stringify(messages, null, 2));
+
+		// Get response from OpenAI
+		console.log("[DEBUG] Sending request to OpenAI...");
+		const response = await chatCompletion(messages, {
+			model: config.visionEnabled && (hasImage || imageUrls.length > 0) ? config.visionModel : config.openAIModel,
+			temperature: 0.7
+		});
+
+		const end = Date.now() - start;
+		console.log(`[DEBUG] OpenAI response received in ${end}ms`);
+
+		cli.print(`[GPT] Answer to ${message.from}: ${response}  | OpenAI request took ${end}ms)`);
+
+		// TTS reply (Default: disabled)
+		if (getConfig("tts", "enabled")) {
+			console.log("[DEBUG] Sending TTS reply...");
+			sendVoiceMessageReply(message, response);
+			message.reply(response);
+			return;
+		}
+
+		// Default: Text reply
+		console.log("[DEBUG] Sending text reply...");
+		message.reply(response);
+	} catch (error: any) {
+		console.error("[DEBUG] An error occurred:", error);
+		message.reply("An error occurred, please contact the administrator. (" + error.message + ")");
+	}
 };
 
 async function sendVoiceMessageReply(message: Message, gptTextResponse: string) {
@@ -232,35 +233,35 @@ async function sendVoiceMessageReply(message: Message, gptTextResponse: string) 
 	const messageMedia = new MessageMedia(
 		"audio/ogg; codecs=opus",
 		audioBuffer.toString("base64"),
-		`audio_${Date.now()}.opus`,  // filename
-		audioBuffer.length           // filesize
+		`audio_${Date.now()}.opus`, // filename
+		audioBuffer.length // filesize
 	);
-	message.reply(messageMedia, { caption: 'Generated audio response' });
+	message.reply(messageMedia, { caption: "Generated audio response" });
 
 	// Delete temp file
 	fs.unlinkSync(tempFilePath);
 }
 
 async function sendLocalFileMedia(message: Message, filePath: string) {
-    try {
-        const media = MessageMedia.fromFilePath(filePath);
-        await message.reply(media);
-        cli.print(`[Media] Sent local file: ${filePath}`);
-    } catch (error) {
-        console.error('[Media] Error sending local file:', error);
-        throw new Error('Failed to send local file');
-    }
+	try {
+		const media = MessageMedia.fromFilePath(filePath);
+		await message.reply(media);
+		cli.print(`[Media] Sent local file: ${filePath}`);
+	} catch (error) {
+		console.error("[Media] Error sending local file:", error);
+		throw new Error("Failed to send local file");
+	}
 }
 
 async function sendUrlMedia(message: Message, url: string) {
-    try {
-        const media = await MessageMedia.fromUrl(url);
-        await message.reply(media);
-        cli.print(`[Media] Sent URL media: ${url}`);
-    } catch (error) {
-        console.error('[Media] Error sending URL media:', error);
-        throw new Error('Failed to send URL media');
-    }
+	try {
+		const media = await MessageMedia.fromUrl(url);
+		await message.reply(media);
+		cli.print(`[Media] Sent URL media: ${url}`);
+	} catch (error) {
+		console.error("[Media] Error sending URL media:", error);
+		throw new Error("Failed to send URL media");
+	}
 }
 
 export { handleMessageGPT, handleDeleteConversation, sendLocalFileMedia, sendUrlMedia };

@@ -40,3 +40,18 @@ Verification:
 - `npm run format`
 - `npm run format:check` *(fails: Code style issues found in 10 files)*
 - `npm test` *(fails: Missing script "test")*
+[2025-09-12]
+### Modularize puppeteer config and event handlers
+- Extracted Puppeteer launch args to `src/config/puppeteer.ts`.
+- Split WhatsApp event listeners into dedicated modules under `src/events` and simplified `src/index.ts`.
+Verification:
+- `npm run format`
+- `npm run format:check` *(fails: Code style issues found in 10 files)*
+- `npm test` *(fails: Missing script "test")*
+[2025-09-12]
+### Fix code formatting
+- Applied Prettier formatting across commands, handlers, providers, and utilities to satisfy style checks.
+Verification:
+- `npm run format`
+- `npm run format:check`
+- `npm test` *(fails: Missing script "test")*

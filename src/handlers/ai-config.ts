@@ -25,7 +25,7 @@ const initAiConfig = () => {
 	[ChatModule, GeneralModule, GptModule, TranscriptionModule, TTSModule, StableDiffusionModule, TranslateModule].forEach((module) => {
 		aiConfig.commandsMap[module.key] = module.register();
 	});
-	
+
 	// Ensure size compatibility based on the model
 	if (aiConfig.dalle.model === "dall-e-3") {
 		aiConfig.dalle.size = dalleImageSize["1024x1024"];
@@ -148,19 +148,14 @@ export function executeCommand(target: string, type: string, message: Message, v
 }
 
 const handleDeleteConversation = async (message: Message) => {
-    try {
-        // Clear conversation context
-        aiConfig.commandsMap.chat = ChatModule.register();
-        message.reply("Conversation context has been reset!");
-    } catch (error: any) {
-        console.error("An error occurred while resetting conversation", error);
-        message.reply("An error occurred while resetting conversation. Please try again.");
-    }
+	try {
+		// Clear conversation context
+		aiConfig.commandsMap.chat = ChatModule.register();
+		message.reply("Conversation context has been reset!");
+	} catch (error: any) {
+		console.error("An error occurred while resetting conversation", error);
+		message.reply("An error occurred while resetting conversation. Please try again.");
+	}
 };
 
-export { 
-    aiConfig, 
-    handleMessageAIConfig, 
-    initAiConfig,
-    handleDeleteConversation 
-};
+export { aiConfig, handleMessageAIConfig, initAiConfig, handleDeleteConversation };

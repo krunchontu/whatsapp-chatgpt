@@ -67,7 +67,6 @@ const settings: ICommandDefinition = {
 	}
 };
 
-
 const whitelist: ICommandDefinition = {
 	help: "<value> - Set whitelisted phone numbers",
 	data: config.whitelistedPhoneNumbers,
