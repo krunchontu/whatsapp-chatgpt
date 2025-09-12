@@ -9,6 +9,7 @@ Recent Changes:
 - Cleaned up .gitignore to remove redundant rules
 - Removed backup git repository and added ignore rule for backups
 - Added configurable session path and documentation
+- Replaced hard-coded custom moderation settings with env-based helper and updated docs
 Next Steps:
 1. Perform Code Health Audit (Priority: Critical)
 2. Dependency Mapping (Priority: High)

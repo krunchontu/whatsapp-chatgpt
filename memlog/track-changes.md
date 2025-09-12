@@ -32,3 +32,11 @@ Verification:
 - `npm run format`
 - `npm run format:check` *(fails: Code style issues found in 11 files)*
 - `npm test` *(fails: Missing script "test")*
+[2025-09-12]
+### Environment-based moderation config
+- Replaced literal `customModerationParams` with `getEnvCustomModerationParams()` in `src/config.ts`.
+- Documented the `CUSTOM_MODERATION_PARAMS` environment variable.
+Verification:
+- `npm run format`
+- `npm run format:check` *(fails: Code style issues found in 10 files)*
+- `npm test` *(fails: Missing script "test")*

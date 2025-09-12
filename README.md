@@ -30,6 +30,7 @@ In the documentation you can find more information about how to install, configu
 ## Environment Variables
 
 -   `SESSION_PATH`: Directory to store WhatsApp session data. Defaults to `./session`.
+-   `CUSTOM_MODERATION_PARAMS`: JSON object enabling or disabling moderation categories. Defaults to `{"political_content":true,"misinformation":true,"hate_speech":true,"explicit_content":true}`.
 
 ## Disclaimer
 
