@@ -62,6 +62,16 @@ You can see all available categories [here](https://beta.openai.com/docs/api-ref
 
 Please, keep in mind that disabling the prompt moderation or modifying the blacklisted categories, will not disable the moderation of the GPT API. Because OpenAI uses their own moderation, which is not configurable.
 
+## Custom Moderation Parameters
+
+You can fine-tune which categories are checked by setting the `CUSTOM_MODERATION_PARAMS` environment variable to a JSON object:
+
+```bash
+CUSTOM_MODERATION_PARAMS='{"political_content":true,"misinformation":true,"hate_speech":true,"explicit_content":true}'
+```
+
+Any omitted categories default to `false`.
+
 ## Rate Limit
 
 https://platform.openai.com/docs/guides/rate-limits

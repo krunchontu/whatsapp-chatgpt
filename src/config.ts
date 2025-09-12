@@ -19,7 +19,7 @@ interface IConfig {
 	// Vision
 	visionEnabled: boolean;
 	visionModel: string;
-	visionDetailLevel: 'low' | 'high' | 'auto';
+	visionDetailLevel: "low" | "high" | "auto";
 	// OpenAI
 	openAIModel: string;
 	openAIAPIKeys: string[];
@@ -68,6 +68,19 @@ interface IConfig {
 	transcriptionLanguage: string;
 }
 
+function getEnvCustomModerationParams(): { [key: string]: boolean } {
+	const envValue = process.env.CUSTOM_MODERATION_PARAMS;
+	if (!envValue) {
+		return {
+			political_content: true,
+			misinformation: true,
+			hate_speech: true,
+			explicit_content: true
+		};
+	}
+	return JSON.parse(envValue);
+}
+
 // Config
 export const config: IConfig = {
 	// OpenAI Client Configuration
@@ -82,12 +95,7 @@ export const config: IConfig = {
 	visionDetailLevel: process.env.VISION_DETAIL_LEVEL || "auto",
 	// Moderation
 	moderationEnabled: getEnvBooleanWithDefault("MODERATION_ENABLED", true),
-	customModerationParams: {
-		political_content: true,
-		misinformation: true,
-		hate_speech: true,
-		explicit_content: true
-	},
+	customModerationParams: getEnvCustomModerationParams(),
 
 	openAIAPIKeys: (process.env.OPENAI_API_KEYS || process.env.OPENAI_API_KEY || "").split(",").filter((key) => !!key), // Default: []
 	openAIModel: process.env.OPENAI_GPT_MODEL || "gpt-3.5-turbo", // Default: gpt-3.5-turbo
@@ -208,19 +216,6 @@ function getEnvTTSMode(): TTSMode {
  * Get the AWS Polly voice engine from the environment variable
  * @returns The voice engine
  */
-function getEnvCustomModerationParams(): { [key: string]: boolean } {
-    const envValue = process.env.CUSTOM_MODERATION_PARAMS;
-    if (!envValue) {
-        return {
-            political_content: true,
-            misinformation: true,
-            hate_speech: true,
-            explicit_content: true
-        };
-    }
-    return JSON.parse(envValue);
-}
-
 function getEnvAWSPollyVoiceEngine(): AWSPollyEngine {
 	const envValue = process.env.AWS_POLLY_VOICE_ENGINE?.toLowerCase();
 	if (envValue == undefined || envValue == "") {
