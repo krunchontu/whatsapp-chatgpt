@@ -40,3 +40,5 @@ lib-cov
 .aider.tags.cache.v3/cache.db
 replace*.*
 *.history
+
+*-backup.git/

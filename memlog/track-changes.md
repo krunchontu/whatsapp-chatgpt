@@ -15,3 +15,11 @@ Verification:
 - `git status --ignored`
 - `npm run format:check` *(fails: Code style issues found in 11 files)*
 - `npm test` *(fails: Missing script "test")*
+[2025-09-12]
+### Remove backup repository
+- Deleted `whatsapp-chatgpt-backup.git` directory.
+- Added `*-backup.git/` to `.gitignore` to prevent committing backup repos.
+Verification:
+- `git status --short`
+- `npm run format:check` *(fails: Code style issues found in 11 files)*
+- `npm test` *(fails: Missing script "test")*
