@@ -3,6 +3,11 @@ node_modules/
 
 # Environment files
 .env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Session data
 session/
@@ -42,3 +47,14 @@ replace*.*
 *.history
 
 *-backup.git/
+# BMAD (local only)
+.bmad-core/
+.bmad-*/
+
+# Coding assistants (local only)
+.claude/
+web-bundles/
+
+# IDE settings (optional - uncomment if needed)
+# .vscode/
+# .idea/
