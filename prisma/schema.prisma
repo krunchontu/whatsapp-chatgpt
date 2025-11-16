@@ -22,15 +22,15 @@ generator client {
 //                User Management                 #
 // ============================================== #
 
-enum Role {
-  ADMIN  // Can configure bot, view usage stats
-  USER   // Can chat with bot
-}
+// Note: SQLite doesn't support enums, so we use String with app-level validation
+// Valid Role values: "ADMIN" | "USER"
+// - ADMIN: Can configure bot, view usage stats
+// - USER: Can chat with bot
 
 model User {
   id            String   @id @default(cuid())
   phoneNumber   String   @unique
-  role          Role     @default(USER)
+  role          String   @default("USER")  // "ADMIN" | "USER"
   isWhitelisted Boolean  @default(false)
 
   // Timestamps
@@ -77,11 +77,11 @@ model Conversation {
 //           Usage Tracking & Costs               #
 // ============================================== #
 
-enum OperationType {
-  CHAT           // GPT chat completion
-  TRANSCRIPTION  // Whisper voice transcription
-  VISION         // GPT vision (image analysis)
-}
+// Note: SQLite doesn't support enums, so we use String with app-level validation
+// Valid OperationType values: "CHAT" | "TRANSCRIPTION" | "VISION"
+// - CHAT: GPT chat completion
+// - TRANSCRIPTION: Whisper voice transcription
+// - VISION: GPT vision (image analysis)
 
 model UsageMetric {
   id          String   @id @default(cuid())
@@ -98,8 +98,8 @@ model UsageMetric {
   costMicros   Int  // Cost in micro-dollars (1/1,000,000 of a dollar)
 
   // Model and operation
-  model       String          // e.g., "gpt-4o", "whisper-1"
-  operation   OperationType
+  model       String  // e.g., "gpt-4o", "whisper-1"
+  operation   String  // "CHAT" | "TRANSCRIPTION" | "VISION"
 
   // Timestamps
   createdAt   DateTime @default(now())
@@ -134,11 +134,14 @@ model SystemConfig {
 // SQLite Limitations:
 // 1. No native Decimal type → use Int (micro-dollars)
 // 2. No native JSON type → use String with JSON.parse/stringify
-// 3. Limited concurrent writes (~10/sec) → sufficient for MVP
+// 3. No native Enum type → use String with app-level validation
+// 4. Limited concurrent writes (~10/sec) → sufficient for MVP
 
 // PostgreSQL Migration (when needed):
 // 1. Change provider to "postgresql"
 // 2. Change costMicros to: cost Decimal @db.Decimal(10, 6)
 // 3. Change messages to: messages Json
-// 4. Run: npx prisma migrate dev
-// 5. Data migration: export from SQLite, import to Postgres
+// 4. Add back enums: enum Role { ADMIN, USER }
+// 5. Change role/operation String to enum types
+// 6. Run: npx prisma migrate dev
+// 7. Data migration: export from SQLite, import to Postgres
