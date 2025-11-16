@@ -1,0 +1,144 @@
+// Prisma Schema for WhatsApp AI Customer Service Bot
+// Supports both SQLite (MVP) and PostgreSQL (production scale)
+
+// To switch from SQLite to PostgreSQL:
+// 1. Change provider to "postgresql"
+// 2. Update DATABASE_URL to postgres connection string
+// 3. Run: npx prisma migrate dev
+// 4. All migrations will work with both databases
+
+datasource db {
+  provider = "sqlite"  // Change to "postgresql" when scaling
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  // Optimization: smaller client size
+  binaryTargets = ["native"]
+}
+
+// ============================================== #
+//                User Management                 #
+// ============================================== #
+
+enum Role {
+  ADMIN  // Can configure bot, view usage stats
+  USER   // Can chat with bot
+}
+
+model User {
+  id            String   @id @default(cuid())
+  phoneNumber   String   @unique
+  role          Role     @default(USER)
+  isWhitelisted Boolean  @default(false)
+
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  conversations Conversation[]
+  usageMetrics  UsageMetric[]
+
+  @@index([phoneNumber])
+  @@map("users")
+}
+
+// ============================================== #
+//            Conversation Memory                 #
+// ============================================== #
+
+model Conversation {
+  id          String   @id @default(cuid())
+  userId      String
+
+  // JSON array of messages: [{role: "user"|"assistant", content: "...", timestamp: "..."}]
+  // Stores last 10 messages for context
+  messages    String   // JSON string (SQLite limitation)
+
+  // Metadata
+  messageCount Int     @default(0)
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  expiresAt   DateTime  // TTL for privacy (7 days default)
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])  // For cleanup job
+  @@map("conversations")
+}
+
+// ============================================== #
+//           Usage Tracking & Costs               #
+// ============================================== #
+
+enum OperationType {
+  CHAT           // GPT chat completion
+  TRANSCRIPTION  // Whisper voice transcription
+  VISION         // GPT vision (image analysis)
+}
+
+model UsageMetric {
+  id          String   @id @default(cuid())
+  userId      String
+
+  // Token counts
+  promptTokens     Int
+  completionTokens Int
+  totalTokens      Int
+
+  // Cost in USD (stored as integer, divide by 1,000,000 for actual cost)
+  // Example: 5250 = $0.005250
+  // SQLite doesn't have Decimal type, so we store as Int
+  costMicros   Int  // Cost in micro-dollars (1/1,000,000 of a dollar)
+
+  // Model and operation
+  model       String          // e.g., "gpt-4o", "whisper-1"
+  operation   OperationType
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([createdAt])  // For daily aggregation
+  @@map("usage_metrics")
+}
+
+// ============================================== #
+//           System Configuration                 #
+// ============================================== #
+
+model SystemConfig {
+  key       String   @id
+  value     String   // JSON string
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_config")
+}
+
+// ============================================== #
+//              Migration Notes                   #
+// ============================================== #
+
+// SQLite Limitations:
+// 1. No native Decimal type → use Int (micro-dollars)
+// 2. No native JSON type → use String with JSON.parse/stringify
+// 3. Limited concurrent writes (~10/sec) → sufficient for MVP
+
+// PostgreSQL Migration (when needed):
+// 1. Change provider to "postgresql"
+// 2. Change costMicros to: cost Decimal @db.Decimal(10, 6)
+// 3. Change messages to: messages Json
+// 4. Run: npx prisma migrate dev
+// 5. Data migration: export from SQLite, import to Postgres
