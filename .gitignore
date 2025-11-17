@@ -14,6 +14,9 @@ session/
 .wwebjs_cache
 .session
 
+# User data storage
+data/
+
 # Logs
 logs
 *.log
