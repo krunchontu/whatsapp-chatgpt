@@ -1,6 +1,10 @@
 import * as cli from "../cli/ui";
 import { initAiConfig } from "../handlers/ai-config";
 import { initOpenAI } from "../providers/openai";
+import { createChildLogger } from "../lib/logger";
+import { ConfigurationError } from "../lib/errors";
+
+const logger = createChildLogger({ module: 'events:ready' });
 
 function createReadyHandler(setBotReadyTimestamp: (date: Date) => void) {
 	return () => {
@@ -8,20 +12,32 @@ function createReadyHandler(setBotReadyTimestamp: (date: Date) => void) {
 
 		const timestamp = new Date();
 		setBotReadyTimestamp(timestamp);
-		console.debug(`[DEBUG] Bot ready at: ${timestamp.toISOString()}`);
+		logger.info({ timestamp: timestamp.toISOString() }, 'WhatsApp bot is ready');
 
+		// Initialize AI configuration
 		try {
 			initAiConfig();
-			console.debug("[DEBUG] AI config initialized successfully");
+			logger.info('AI configuration initialized successfully');
 		} catch (error) {
-			console.error("[DEBUG] Failed to initialize AI config:", error);
+			logger.error({ err: error }, 'Failed to initialize AI configuration');
+			throw new ConfigurationError(
+				'Failed to initialize AI configuration',
+				'AI_CONFIG',
+				{ error }
+			);
 		}
 
+		// Initialize OpenAI client
 		try {
 			initOpenAI();
-			console.debug("[DEBUG] OpenAI initialized successfully");
+			logger.info('OpenAI client initialized successfully');
 		} catch (error) {
-			console.error("[DEBUG] Failed to initialize OpenAI:", error);
+			logger.error({ err: error }, 'Failed to initialize OpenAI client');
+			throw new ConfigurationError(
+				'Failed to initialize OpenAI client',
+				'OPENAI',
+				{ error }
+			);
 		}
 	};
 }
