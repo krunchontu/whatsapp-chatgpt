@@ -149,126 +149,6 @@ it('should redact apiKey in actual output', () => {
 
 ---
 
-### Issue #6: Test Failures Due to SQLite BigInt Type Mismatches
-**Status:** 🟢 Low Priority
-**Created:** 2025-11-18 (Week 1 Day 5)
-**Component:** Testing
-**Impact:** 16 out of 256 tests failing (93.75% pass rate)
-
-**Description:**
-SQLite returns `BigInt` (e.g., `1n`) for numeric values from raw SQL queries, but tests expect regular `Number` types. This causes 16 test assertions to fail.
-
-**Current State:**
-- 240 tests passing, 16 tests failing
-- All failures are type assertion mismatches (BigInt vs Number)
-- No functional issues - application works correctly
-- Examples:
-  - `expect(result[0]).toHaveProperty('result', 1)` fails because result is `1n`
-  - Date comparisons and counts affected
-
-**Affected Tests:**
-- `src/db/__tests__/connection.test.ts`: 1 test
-- `src/db/repositories/__tests__/usage.repository.test.ts`: 5 tests
-- `src/db/repositories/__tests__/integration.test.ts`: 6 tests
-- `src/db/__tests__/cleanup.test.ts`: 3 tests
-- `src/db/repositories/__tests__/user.repository.test.ts`: 2 tests
-- `src/db/repositories/__tests__/conversation.repository.test.ts`: 3 tests (pagination, delete operations)
-
-**Resolution Options:**
-1. Convert BigInt to Number in test assertions: `Number(result[0].count)`
-2. Update tests to expect BigInt: `expect(result[0]).toHaveProperty('result', 1n)`
-3. Add helper function to normalize SQLite results in test utilities
-
-**Expected Outcome:**
-- All 256 tests passing
-- Type-safe assertions for SQLite-specific behavior
-
-**Priority:** 🟢 **Low - Tests are passing at 93.75%, failures are cosmetic**
-
----
-
-### Issue #7: Jest Configuration Deprecated Options
-**Status:** 🟢 Low Priority
-**Created:** 2025-11-18 (Week 1 Day 5)
-**Component:** Testing Configuration
-**Impact:** Warnings in test output, may break in future Jest versions
-
-**Description:**
-Jest configuration uses deprecated options that generate warnings:
-1. `coverageThresholds` should be `coverageThreshold` (typo)
-2. `ts-jest` config under `globals` is deprecated
-3. `isolatedModules` should be in tsconfig.json instead of jest config
-
-**Current Warnings:**
-```
-Unknown option "coverageThresholds" ... Did you mean "coverageThreshold"?
-Define `ts-jest` config under `globals` is deprecated
-The "ts-jest" config option "isolatedModules" is deprecated
-```
-
-**Resolution:**
-Update `jest.config.js`:
-```javascript
-// Fix coverage thresholds typo
-coverageThreshold: {  // was: coverageThresholds
-  global: {
-    branches: 70,
-    functions: 75,
-    lines: 80,
-    statements: 80,
-  },
-},
-
-// Move ts-jest config from globals to transform
-transform: {
-  '^.+\\.ts$': ['ts-jest', {
-    isolatedModules: true,  // Move here from globals
-    tsconfig: {
-      strict: false,
-    },
-  }],
-},
-```
-
-**Expected Outcome:**
-- No deprecation warnings
-- Jest config follows current best practices
-- Future-proof for Jest v30
-
-**Priority:** 🟢 **Low - Functionality works, just warnings**
-
----
-
-### Issue #8: Test Database Not in .gitignore
-**Status:** 🟢 Low Priority
-**Created:** 2025-11-18 (Week 1 Day 5)
-**Component:** Version Control
-**Impact:** Test database file may be committed to git
-
-**Description:**
-The test database file `test.db` is generated during test runs but is not listed in `.gitignore`, risking accidental commits.
-
-**Current State:**
-- `test.db` created in project root during tests
-- Not listed in `.gitignore`
-- May contain test data that shouldn't be versioned
-
-**Resolution:**
-Add to `.gitignore`:
-```
-# Test database
-test.db
-test.db-journal
-*.db-journal
-```
-
-**Expected Outcome:**
-- Test database files never committed
-- Clean git status after running tests
-
-**Priority:** 🟢 **Low - Easy fix, prevents potential issue**
-
----
 
 ## 📝 Technical Debt
 
@@ -460,6 +340,94 @@ Time:        ~19s
 
 ---
 
+### Issue #R5: Test Failures Due to SQLite BigInt Type Mismatches
+**Status:** ✅ Resolved
+**Resolved:** 2025-11-18 (Week 1 Day 5)
+**Component:** Testing
+**Impact:** All BigInt-related test failures fixed
+
+**Description:**
+SQLite returned `BigInt` (e.g., `1n`) for numeric values from raw SQL queries, causing test assertions to fail. Additionally, date range calculations in getUserStats and getGlobalStats were off by one day, excluding today from the results.
+
+**Root Causes:**
+1. `connection.test.ts` expected `Number` but SQLite returned `BigInt` for raw SQL
+2. `usage.repository.ts` getUserStats/getGlobalStats calculated date range incorrectly (started N days ago instead of N-1 days ago)
+
+**Resolution:**
+1. **BigInt Fix (connection.test.ts:40-42):**
+   - Changed expected type from `number` to `bigint`
+   - Changed assertion from `1` to `1n`
+   - Updated comment to clarify SQLite behavior
+
+2. **Date Range Fix (usage.repository.ts:252, 334):**
+   - Changed `startDate.getDate() - days` to `startDate.getDate() - (days - 1)`
+   - Now correctly includes today in the daily breakdown
+   - Applied fix to both `getUserStats` and `getGlobalStats` functions
+
+**Test Results:**
+- **Before:** 240/256 tests passing (93.75%)
+- **After:** 255/256 tests passing (99.6%) when run with `--runInBand`
+- **Remaining:** 1 test failure unrelated to BigInt (error handling test)
+
+**Files Modified:**
+- `src/db/__tests__/connection.test.ts` - Fixed BigInt assertion
+- `src/db/repositories/usage.repository.ts` - Fixed date range calculations (2 locations)
+
+---
+
+### Issue #R6: Jest Configuration Deprecated Options
+**Status:** ✅ Resolved
+**Resolved:** 2025-11-18 (Week 1 Day 5)
+**Component:** Testing Configuration
+
+**Description:**
+Jest configuration used deprecated options that generated warnings during test execution.
+
+**Problems Fixed:**
+1. `coverageThresholds` typo (should be `coverageThreshold`)
+2. `ts-jest` config under `globals` is deprecated
+3. `isolatedModules` should be in transform config, not globals
+
+**Resolution:**
+Updated `jest.config.js`:
+1. Changed `coverageThresholds` to `coverageThreshold` (line 29)
+2. Moved `isolatedModules: true` from `globals` section to `transform` config (line 44)
+3. Removed empty `globals` section entirely (lines 60-64)
+
+**Result:**
+- ✅ No more deprecation warnings
+- ✅ Jest config follows current best practices
+- ✅ Future-proof for Jest v30
+
+**Files Modified:**
+- `jest.config.js` - Fixed deprecated options
+
+---
+
+### Issue #R7: Test Database Not in .gitignore
+**Status:** ✅ Resolved
+**Resolved:** 2025-11-18 (Week 1 Day 5)
+**Component:** Version Control
+
+**Description:**
+Test database file `test.db` was generated during test runs but not explicitly listed in `.gitignore`, risking accidental commits.
+
+**Resolution:**
+Added explicit entries to `.gitignore`:
+- `test.db` (explicit entry for clarity)
+- `test.db-journal` (explicit entry for clarity)
+- Added comment noting these are covered by existing `*.db` pattern
+
+**Result:**
+- ✅ Test database files will never be committed
+- ✅ Clean git status after running tests
+- ✅ Clear documentation of test file exclusions
+
+**Files Modified:**
+- `.gitignore` - Added explicit test database entries with explanatory comment
+
+---
+
 ## Issue Workflow
 
 ### Status Indicators
@@ -481,22 +449,24 @@ Time:        ~19s
 
 ### Completed (Week 1 Day 5)
 1. ✅ Install dependencies (`pnpm install`)
-2. ✅ Execute full test suite (256 tests, 93.75% pass rate)
+2. ✅ Execute full test suite (256 tests, 93.75% pass rate → 99.6% pass rate)
 3. ✅ Fix database schema issues for tests
 4. ✅ Document all new issues discovered
+5. ✅ Fix SQLite BigInt test failures (Issue #R5)
+6. ✅ Fix Jest configuration deprecated options (Issue #R6)
+7. ✅ Add test.db to .gitignore (Issue #R7)
+8. ✅ Update ISSUES.md with resolved issues
+9. ✅ Improve test pass rate from 93.75% to 99.6%
 
 ### Immediate (Day 5 Completion)
-1. ⏳ Update PROGRESS.md with Day 5 status
-2. ⏳ Commit and push Day 5 changes
-3. ⏳ Plan for Week 2 priorities
+1. ⏳ Commit and push all fixes
+2. ⏳ Plan for Week 2 priorities
 
 ### Short Term (Week 2)
-1. Fix test failures (Issue #6: SQLite BigInt mismatches)
-2. Update Jest config (Issue #7: deprecated options)
-3. Add test.db to .gitignore (Issue #8)
-4. Obtain Sentry DSN for staging (Issue #3)
-5. Add ESLint rule for console.log (Issue #4)
-6. Enhance logger tests to verify output (Issue #5)
+1. Fix remaining 1 test failure (error handling test in cleanup.test.ts)
+2. Obtain Sentry DSN for staging (Issue #3)
+3. Add ESLint rule for console.log (Issue #4)
+4. Enhance logger tests to verify output (Issue #5)
 
 ### Medium Term (Week 2-3)
 1. Create integration tests (TD-3)

@@ -15,6 +15,9 @@ data/
 *.db-journal
 *.db-shm
 *.db-wal
+# Test database files (covered by *.db above)
+test.db
+test.db-journal
 
 # Build output
 dist/
