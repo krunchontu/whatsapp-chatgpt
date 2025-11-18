@@ -23,5 +23,27 @@ export type {
   ConversationWithMessages,
 } from './repositories/conversation.repository';
 
+export { UsageRepository, OperationType } from './repositories/usage.repository';
+export type {
+  OperationTypeType,
+  CreateUsageData,
+  DailyUsageSummary,
+  UserUsageStats,
+} from './repositories/usage.repository';
+
+// Export cleanup utilities
+export {
+  cleanupExpiredConversations,
+  cleanupOldUsageMetrics,
+  cleanupExpiredData,
+  cleanupOldData,
+  cleanupUserData,
+  getDatabaseStats,
+  optimizeDatabase,
+  runScheduledCleanup,
+  getCleanupPreview,
+} from './cleanup';
+export type { CleanupStats, CleanupOptions } from './cleanup';
+
 // Re-export Prisma types for convenience
 export type { User, Conversation, UsageMetric, SystemConfig } from '@prisma/client';
