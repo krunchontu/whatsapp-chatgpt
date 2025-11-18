@@ -1,10 +1,14 @@
 import qrcode from "qrcode";
 import * as cli from "../cli/ui";
+import { createChildLogger } from "../lib/logger";
+
+const logger = createChildLogger({ module: 'events:qr' });
 
 function onQRReceived(qr: string) {
 	const qrTime = new Date();
+	logger.info({ timestamp: qrTime.toISOString() }, 'QR code received for authentication');
+
 	console.log("");
-	console.debug(`[DEBUG] QR received at: ${qrTime.toISOString()}`);
 	qrcode.toString(
 		qr,
 		{
@@ -14,7 +18,10 @@ function onQRReceived(qr: string) {
 			scale: 1
 		},
 		(err, url) => {
-			if (err) throw err;
+			if (err) {
+				logger.error({ err }, 'Failed to generate QR code');
+				throw err;
+			}
 			cli.printQRCode(url);
 		}
 	);
