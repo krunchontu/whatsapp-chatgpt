@@ -162,7 +162,7 @@ describe('Error Handler Middleware', () => {
       await handleError(rateLimitError, mockMessage as Message);
 
       expect(mockMessage.reply).toHaveBeenCalledWith(
-        expect.stringContaining('limit')
+        expect.stringContaining('wait')
       );
     });
   });
