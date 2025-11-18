@@ -1,6 +1,9 @@
 import { PollyClient, SynthesizeSpeechCommand } from "@aws-sdk/client-polly";
 import { Readable } from "stream";
 import config from "../config";
+import { createChildLogger } from "../lib/logger";
+
+const logger = createChildLogger({ module: 'providers:aws' });
 
 /**
  * @param text The sentence to be converted to speech
@@ -35,14 +38,15 @@ async function ttsRequest(text: string): Promise<Buffer | null> {
 		}
 		return null;
 	} catch (error) {
-		console.error("An error occurred (TTS request)", error);
-		if (error.$metadata) {
-			console.log({
+		logger.error({
+			err: error,
+			textLength: text?.length,
+			metadata: error.$metadata ? {
 				requestId: error.$metadata.requestId,
 				cfId: error.$metadata.cfId,
 				extendedRequestId: error.$metadata.extendedRequestId
-			});
-		}
+			} : undefined
+		}, 'AWS Polly TTS request failed');
 		return null;
 	}
 }

@@ -7,6 +7,9 @@ import { convertMediaToBase64, isImageMedia } from "../utils";
 import { chatCompletion } from "../providers/openai";
 import * as cli from "../cli/ui";
 import config from "../config";
+import { createChildLogger } from "../lib/logger";
+
+const logger = createChildLogger({ module: 'handlers:gpt' });
 
 // TTS
 import { ttsRequest as speechTTSRequest } from "../providers/speech";
@@ -22,30 +25,36 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 		cli.print(`[GPT] Received prompt from ${message.from}: ${prompt}`);
 
 		// Check for media attachments
-		console.log("[DEBUG] Checking for media attachments...");
-		console.log("[DEBUG] Message object:", JSON.stringify(message, null, 2));
+		logger.debug({ chatId: message.from, hasMedia: message.hasMedia }, 'Checking for media attachments');
 
 		let media: MessageMedia | null = null;
 		if (message.hasMedia) {
 			try {
 				media = await message.downloadMedia();
-				console.log("[DEBUG] Downloaded media:", media ? "exists" : "null");
+				logger.debug({
+					chatId: message.from,
+					mediaExists: !!media,
+					hasData: !!media?.data
+				}, 'Downloaded media');
 
 				if (!media?.data) {
-					console.error("[DEBUG] Media download failed - empty data");
+					logger.error({ chatId: message.from }, 'Media download failed - empty data');
 					throw new Error("Failed to download media - empty data");
 				}
 			} catch (error) {
-				console.error("[DEBUG] Media download failed:", error);
+				logger.error({ err: error, chatId: message.from }, 'Media download failed');
 				media = null;
 			}
 		} else {
-			console.log("[DEBUG] No media attached to message");
+			logger.debug({ chatId: message.from }, 'No media attached to message');
 		}
 
 		const hasImage = media && isImageMedia(media) && media.data.length > 0;
-		console.log(`[DEBUG] Media found: ${!!media}`);
-		console.log(`[DEBUG] Is image: ${hasImage}`);
+		logger.debug({
+			chatId: message.from,
+			mediaFound: !!media,
+			isImage: hasImage
+		}, 'Media check completed');
 
 		// Check for image URLs in the message
 		const imageUrls =
@@ -60,25 +69,32 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 				})
 				.map((link) => link.link) || [];
 
-		console.log("[DEBUG] Found image URLs:", imageUrls);
+		logger.debug({
+			chatId: message.from,
+			imageUrlCount: imageUrls.length,
+			imageUrls
+		}, 'Found image URLs in message');
 
 		if (media) {
-			console.log(`[DEBUG] Media type: ${media.mimetype}`);
-			if (media.data) {
-				console.log(`[DEBUG] Media size: ${media.data.length} bytes`);
-				console.log(`[DEBUG] First 100 chars of media data: ${media.data.substring(0, 100)}`);
-			} else {
-				console.error("[DEBUG] Media has no data");
-			}
+			logger.debug({
+				chatId: message.from,
+				mediaType: media.mimetype,
+				mediaSize: media.data?.length,
+				hasData: !!media.data
+			}, 'Media details');
 		}
 
 		// Prompt Moderation
 		if (config.promptModerationEnabled) {
 			try {
-				console.log("[DEBUG] Running prompt moderation...");
+				logger.debug({ chatId: message.from }, 'Running prompt moderation');
 				await moderateIncomingPrompt(prompt);
 			} catch (error: any) {
-				console.error("[DEBUG] Prompt moderation failed:", error);
+				logger.warn({
+					err: error,
+					chatId: message.from,
+					prompt: prompt.substring(0, 100)
+				}, 'Prompt moderation failed');
 				message.reply(error.message);
 				return;
 			}
@@ -91,7 +107,7 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 
 		// Add system prompt if configured
 		if (config.prePrompt?.trim()) {
-			console.log("[DEBUG] Adding system prompt");
+			logger.debug({ chatId: message.from }, 'Adding system prompt');
 			messages.push({
 				role: "system",
 				content: config.prePrompt
@@ -102,19 +118,25 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 		const content: Array<any> = [];
 
 		if (prompt) {
-			console.log("[DEBUG] Adding text prompt:", prompt);
+			logger.debug({
+				chatId: message.from,
+				promptLength: prompt.length
+			}, 'Adding text prompt');
 			content.push({ type: "text", text: prompt });
 		}
 
 		// Handle attached image
 		if (hasImage) {
-			console.log("[DEBUG] Processing attached image...");
+			logger.debug({ chatId: message.from }, 'Processing attached image');
 			try {
 				if (!media?.data) {
 					throw new Error("No media data available");
 				}
 				const base64Image = await convertMediaToBase64(media);
-				console.log("[DEBUG] Image converted to base64, length:", base64Image.length);
+				logger.debug({
+					chatId: message.from,
+					base64Length: base64Image.length
+				}, 'Image converted to base64');
 
 				content.push({
 					type: "image_url",
@@ -123,16 +145,25 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 						detail: config.visionDetailLevel
 					}
 				});
-				console.log("[DEBUG] Image added to content with detail level:", config.visionDetailLevel);
+				logger.debug({
+					chatId: message.from,
+					detailLevel: config.visionDetailLevel
+				}, 'Image added to content');
 			} catch (error) {
-				console.error("[DEBUG] Image processing failed:", error);
+				logger.error({
+					err: error,
+					chatId: message.from
+				}, 'Image processing failed');
 				throw new Error("Failed to process image");
 			}
 		}
 
 		// Handle image URLs
 		if (imageUrls.length > 0) {
-			console.log("[DEBUG] Processing image URLs...");
+			logger.debug({
+				chatId: message.from,
+				urlCount: imageUrls.length
+			}, 'Processing image URLs');
 			for (const url of imageUrls) {
 				content.push({
 					type: "image_url",
@@ -141,7 +172,7 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 						detail: config.visionDetailLevel
 					}
 				});
-				console.log("[DEBUG] Added image URL to content:", url);
+				logger.debug({ chatId: message.from, url }, 'Added image URL to content');
 			}
 		}
 
@@ -150,33 +181,53 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 			content: content
 		});
 
-		console.log("[DEBUG] Final messages array:", JSON.stringify(messages, null, 2));
+		logger.debug({
+			chatId: message.from,
+			messageCount: messages.length,
+			contentItems: content.length
+		}, 'Built messages array for OpenAI');
 
 		// Get response from OpenAI
-		console.log("[DEBUG] Sending request to OpenAI...");
+		const model = config.visionEnabled && (hasImage || imageUrls.length > 0) ? config.visionModel : config.openAIModel;
+		logger.debug({
+			chatId: message.from,
+			model,
+			visionEnabled: config.visionEnabled,
+			hasVisualContent: hasImage || imageUrls.length > 0
+		}, 'Sending request to OpenAI');
+
 		const response = await chatCompletion(messages, {
-			model: config.visionEnabled && (hasImage || imageUrls.length > 0) ? config.visionModel : config.openAIModel,
+			model,
 			temperature: 0.7
 		});
 
 		const end = Date.now() - start;
-		console.log(`[DEBUG] OpenAI response received in ${end}ms`);
+		logger.info({
+			chatId: message.from,
+			model,
+			durationMs: end,
+			responseLength: response.length
+		}, 'OpenAI response received');
 
 		cli.print(`[GPT] Answer to ${message.from}: ${response}  | OpenAI request took ${end}ms)`);
 
 		// TTS reply (Default: disabled)
 		if (getConfig("tts", "enabled")) {
-			console.log("[DEBUG] Sending TTS reply...");
+			logger.debug({ chatId: message.from }, 'Sending TTS reply');
 			sendVoiceMessageReply(message, response);
 			message.reply(response);
 			return;
 		}
 
 		// Default: Text reply
-		console.log("[DEBUG] Sending text reply...");
+		logger.debug({ chatId: message.from }, 'Sending text reply');
 		message.reply(response);
 	} catch (error: any) {
-		console.error("[DEBUG] An error occurred:", error);
+		logger.error({
+			err: error,
+			chatId: message.from,
+			prompt: prompt?.substring(0, 100)
+		}, 'GPT request failed');
 		message.reply("An error occurred, please contact the administrator. (" + error.message + ")");
 	}
 };
@@ -247,8 +298,13 @@ async function sendLocalFileMedia(message: Message, filePath: string) {
 		const media = MessageMedia.fromFilePath(filePath);
 		await message.reply(media);
 		cli.print(`[Media] Sent local file: ${filePath}`);
+		logger.info({ chatId: message.from, filePath }, 'Sent local file media');
 	} catch (error) {
-		console.error("[Media] Error sending local file:", error);
+		logger.error({
+			err: error,
+			chatId: message.from,
+			filePath
+		}, 'Error sending local file');
 		throw new Error("Failed to send local file");
 	}
 }
@@ -258,8 +314,13 @@ async function sendUrlMedia(message: Message, url: string) {
 		const media = await MessageMedia.fromUrl(url);
 		await message.reply(media);
 		cli.print(`[Media] Sent URL media: ${url}`);
+		logger.info({ chatId: message.from, url }, 'Sent URL media');
 	} catch (error) {
-		console.error("[Media] Error sending URL media:", error);
+		logger.error({
+			err: error,
+			chatId: message.from,
+			url
+		}, 'Error sending URL media');
 		throw new Error("Failed to send URL media");
 	}
 }

@@ -17,6 +17,7 @@ import { puppeteerArgs } from "./config/puppeteer";
 import { logger, createChildLogger } from "./lib/logger";
 import { setupGlobalErrorHandlers } from "./middleware/errorHandler";
 import { ConfigurationError } from "./lib/errors";
+import { initSentry } from "./lib/sentry";
 
 // Event handlers
 import { onBrowserLaunched } from "./events/browser";
@@ -37,6 +38,9 @@ let botReadyTimestamp: Date | null = null;
 const start = async () => {
 	// Setup global error handlers
 	setupGlobalErrorHandlers();
+
+	// Initialize Sentry error tracking (production only)
+	initSentry();
 
 	appLogger.info('Starting WhatsApp ChatGPT bot');
 	appLogger.debug({

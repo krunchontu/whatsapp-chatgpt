@@ -8,7 +8,6 @@ function onQRReceived(qr: string) {
 	const qrTime = new Date();
 	logger.info({ timestamp: qrTime.toISOString() }, 'QR code received for authentication');
 
-	console.log("");
 	qrcode.toString(
 		qr,
 		{

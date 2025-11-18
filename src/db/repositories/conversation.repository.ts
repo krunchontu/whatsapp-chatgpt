@@ -11,6 +11,9 @@
 
 import { prisma } from '../client';
 import type { Conversation } from '@prisma/client';
+import { createChildLogger } from '../../lib/logger';
+
+const logger = createChildLogger({ module: 'db:repository:conversation' });
 
 /**
  * Message roles
@@ -480,7 +483,11 @@ export class ConversationRepository {
     try {
       messages = JSON.parse(conversation.messages);
     } catch (error) {
-      console.error('Failed to parse conversation messages:', error);
+      logger.error({
+        err: error,
+        conversationId: conversation.id,
+        messagesLength: conversation.messages?.length
+      }, 'Failed to parse conversation messages');
       messages = [];
     }
 

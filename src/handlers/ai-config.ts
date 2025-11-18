@@ -9,8 +9,11 @@ import { TranscriptionModule } from "../commands/transcription";
 import { TTSModule } from "../commands/tts";
 import { StableDiffusionModule } from "../commands/stable-diffusion";
 import { TranslateModule } from "../commands/translate";
+import { createChildLogger } from "../lib/logger";
 
 import config from "../config";
+
+const logger = createChildLogger({ module: 'handlers:ai-config' });
 
 let aiConfig: IAiConfig = {
 	dalle: {
@@ -36,7 +39,10 @@ const initAiConfig = () => {
 
 const handleMessageAIConfig = async (message: Message, prompt: any) => {
 	try {
-		console.log("[AI-Config] Received prompt from " + message.from + ": " + prompt);
+		logger.info({
+			chatId: message.from,
+			prompt
+		}, 'AI config command received');
 
 		const args: string[] = prompt.split(" ");
 
@@ -120,7 +126,11 @@ const handleMessageAIConfig = async (message: Message, prompt: any) => {
 
 		message.reply("Successfully set " + target + " " + type + " to " + value);
 	} catch (error: any) {
-		console.error("An error occured", error);
+		logger.error({
+			err: error,
+			chatId: message.from,
+			prompt
+		}, 'AI config command failed');
 		message.reply("An error occured, please contact the administrator. (" + error.message + ")");
 	}
 };
@@ -151,9 +161,13 @@ const handleDeleteConversation = async (message: Message) => {
 	try {
 		// Clear conversation context
 		aiConfig.commandsMap.chat = ChatModule.register();
+		logger.info({ chatId: message.from }, 'Conversation context reset');
 		message.reply("Conversation context has been reset!");
 	} catch (error: any) {
-		console.error("An error occurred while resetting conversation", error);
+		logger.error({
+			err: error,
+			chatId: message.from
+		}, 'Failed to reset conversation context');
 		message.reply("An error occurred while resetting conversation. Please try again.");
 	}
 };

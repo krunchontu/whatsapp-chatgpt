@@ -2,6 +2,9 @@ import { Message } from "whatsapp-web.js";
 import config from "../config";
 import { chatCompletion } from "../providers/openai";
 import * as cli from "../cli/ui";
+import { createChildLogger } from "../lib/logger";
+
+const logger = createChildLogger({ module: 'handlers:translate' });
 
 /**
  * Handles the !translate command to translate the last message to English.
@@ -199,7 +202,11 @@ const handleTranslate = async (message: Message, value?: string) => {
 				message.reply("An error occurred with the translation service. Please try again later.");
 			}
 		} else {
-			console.error("[Translate] An error occurred:", error);
+			logger.error({
+				err: error,
+				chatId: message.from,
+				translateCount
+			}, 'Translation request failed');
 			cli.print(`[Translate] Error details: ${error.message}`);
 			cli.print(`[Translate] Stack trace: ${error.stack}`);
 			cli.print(`[Translate] Full error: ${JSON.stringify(error)}`);
