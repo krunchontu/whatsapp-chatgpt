@@ -1,6 +1,9 @@
 import { ICommandModule, ICommandDefinition, ICommandsMap } from "../types/commands";
 import { Message, MessageMedia } from "whatsapp-web.js";
 import * as cli from "../cli/ui";
+import { createChildLogger } from "../lib/logger";
+
+const logger = createChildLogger({ module: 'commands:stable-diffusion' });
 
 export const StableDiffusionModule: ICommandModule = {
 	key: "sd",
@@ -69,7 +72,12 @@ const generate: ICommandDefinition = {
 
 			message.reply(image);
 		} catch (error: any) {
-			console.error("An error occurred", error);
+			logger.error({
+				err: error,
+				chatId: message.from,
+				model,
+				prompt: valueStr
+			}, 'Stable Diffusion generation failed');
 			message.reply("An error occurred, please contact the administrator. (" + error.message + ")");
 		}
 	}

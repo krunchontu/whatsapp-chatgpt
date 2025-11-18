@@ -8,6 +8,7 @@ import {
   DatabaseError,
   RateLimitError
 } from '../lib/errors';
+import { captureError } from '../lib/sentry';
 
 /**
  * Async handler wrapper for message handlers.
@@ -68,12 +69,19 @@ export async function handleError(error: unknown, message?: Message): Promise<vo
     }
   }
 
-  // For non-operational errors, we might want to exit or alert
+  // Send to Sentry for non-operational errors (programming errors)
   if (!isOperationalError(err)) {
-    // In production, you might want to send alerts to monitoring service
     logger.fatal({
       err,
       message: 'Non-operational error occurred - this indicates a programming error'
+    });
+
+    // Capture in Sentry with context
+    captureError(err, {
+      errorType: err.name,
+      chatId: message?.from,
+      messageId: message?.id?._serialized,
+      isOperational: isOperationalError(err),
     });
   }
 }

@@ -13,6 +13,9 @@
 import { ConversationRepository } from './repositories/conversation.repository';
 import { UsageRepository } from './repositories/usage.repository';
 import { prisma } from './client';
+import { createChildLogger } from '../lib/logger';
+
+const logger = createChildLogger({ module: 'db:cleanup' });
 
 /**
  * Cleanup statistics
@@ -42,9 +45,10 @@ export interface CleanupOptions {
 export async function cleanupExpiredConversations(): Promise<number> {
   try {
     const deletedCount = await ConversationRepository.deleteExpired();
+    logger.info({ deletedCount }, 'Expired conversations cleaned up');
     return deletedCount;
   } catch (error) {
-    console.error('Failed to cleanup expired conversations:', error);
+    logger.error({ err: error }, 'Failed to cleanup expired conversations');
     throw error;
   }
 }
@@ -59,9 +63,10 @@ export async function cleanupExpiredConversations(): Promise<number> {
 export async function cleanupOldUsageMetrics(days: number): Promise<number> {
   try {
     const deletedCount = await UsageRepository.deleteOlderThan(days);
+    logger.info({ deletedCount, days }, 'Old usage metrics cleaned up');
     return deletedCount;
   } catch (error) {
-    console.error('Failed to cleanup old usage metrics:', error);
+    logger.error({ err: error, days }, 'Failed to cleanup old usage metrics');
     throw error;
   }
 }
@@ -140,7 +145,7 @@ export async function cleanupExpiredData(
       executionTimeMs,
     };
   } catch (error) {
-    console.error('Failed to cleanup expired data:', error);
+    logger.error({ err: error, options }, 'Failed to cleanup expired data');
     throw error;
   }
 }
@@ -191,7 +196,7 @@ export async function cleanupOldData(
       executionTimeMs,
     };
   } catch (error) {
-    console.error('Failed to cleanup old data:', error);
+    logger.error({ err: error, options }, 'Failed to cleanup old data');
     throw error;
   }
 }
@@ -222,7 +227,7 @@ export async function cleanupUserData(userId: string): Promise<CleanupStats> {
       executionTimeMs,
     };
   } catch (error) {
-    console.error(`Failed to cleanup user data for ${userId}:`, error);
+    logger.error({ err: error, userId }, 'Failed to cleanup user data');
     throw error;
   }
 }
@@ -270,7 +275,7 @@ export async function getDatabaseStats() {
       },
     };
   } catch (error) {
-    console.error('Failed to get database stats:', error);
+    logger.error({ err: error }, 'Failed to get database stats');
     throw error;
   }
 }
@@ -328,7 +333,7 @@ export async function optimizeDatabase(): Promise<{
       executionTimeMs,
     };
   } catch (error) {
-    console.error('Failed to optimize database:', error);
+    logger.error({ err: error }, 'Failed to optimize database');
     throw error;
   }
 }
@@ -350,26 +355,26 @@ export async function runScheduledCleanup(
   const startTime = Date.now();
 
   try {
-    console.log('[Cleanup] Starting scheduled cleanup job...');
+    logger.info({ options }, 'Starting scheduled cleanup job');
 
     // 1. Get database stats before cleanup
     const statsBefore = await getDatabaseStats();
-    console.log('[Cleanup] Database stats before:', statsBefore);
+    logger.info({ stats: statsBefore }, 'Database stats before cleanup');
 
     // 2. Run cleanup
     const cleanupStats = await cleanupExpiredData(options);
-    console.log('[Cleanup] Cleanup completed:', cleanupStats);
+    logger.info({ stats: cleanupStats }, 'Cleanup completed');
 
     // 3. Optimize database
     const optimizationStats = await optimizeDatabase();
-    console.log('[Cleanup] Optimization completed:', optimizationStats);
+    logger.info({ stats: optimizationStats }, 'Database optimization completed');
 
     // 4. Get database stats after cleanup
     const statsAfter = await getDatabaseStats();
-    console.log('[Cleanup] Database stats after:', statsAfter);
+    logger.info({ stats: statsAfter }, 'Database stats after cleanup');
 
     const totalExecutionTimeMs = Date.now() - startTime;
-    console.log(`[Cleanup] Total execution time: ${totalExecutionTimeMs}ms`);
+    logger.info({ executionTimeMs: totalExecutionTimeMs }, 'Scheduled cleanup job completed');
 
     return {
       cleanup: cleanupStats,
@@ -377,7 +382,7 @@ export async function runScheduledCleanup(
       databaseStats: statsAfter,
     };
   } catch (error) {
-    console.error('[Cleanup] Scheduled cleanup job failed:', error);
+    logger.error({ err: error, options }, 'Scheduled cleanup job failed');
     throw error;
   }
 }

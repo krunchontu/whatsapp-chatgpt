@@ -3,6 +3,9 @@ import { openai } from "../providers/openai";
 import { aiConfig } from "../handlers/ai-config";
 import config from "../config";
 import * as cli from "../cli/ui";
+import { createChildLogger } from "../lib/logger";
+
+const logger = createChildLogger({ module: 'handlers:dalle' });
 
 // Moderation
 import { moderateIncomingPrompt } from "./moderation";
@@ -44,7 +47,10 @@ const handleMessageDALLE = async (message: any, prompt: any) => {
 
 		// Validate the response structure
 		if (!response.data || !Array.isArray(response.data) || response.data.length === 0 || !response.data[0].url) {
-			console.error("Unexpected OpenAI response:", response.data);
+			logger.error({
+				responseData: response.data,
+				chatId: message.from
+			}, 'Unexpected OpenAI DALL-E response structure');
 			throw new Error("No image data returned from OpenAI.");
 		}
 
@@ -60,7 +66,11 @@ const handleMessageDALLE = async (message: any, prompt: any) => {
 
 		message.reply(image);
 	} catch (error: any) {
-		console.error("An error occurred in handleMessageDALLE:", error);
+		logger.error({
+			err: error,
+			chatId: message.from,
+			prompt
+		}, 'DALL-E image generation failed');
 		message.reply("An error occurred, please contact the administrator. (" + error.message + ")");
 	}
 };

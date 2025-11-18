@@ -1,6 +1,9 @@
 import { Message } from "whatsapp-web.js";
 import BrowserAgentProvider from "../providers/browser-agent";
 import * as cli from "../cli/ui";
+import { createChildLogger } from "../lib/logger";
+
+const logger = createChildLogger({ module: 'handlers:langchain' });
 
 const browserAgent = new BrowserAgentProvider();
 
@@ -16,7 +19,11 @@ const handleMessageLangChain = async (message: Message, prompt: string) => {
 		// Default: Text reply
 		message.reply(output);
 	} catch (error: any) {
-		console.error("An error occured", error);
+		logger.error({
+			err: error,
+			chatId: message.from,
+			prompt
+		}, 'LangChain request failed');
 		message.reply("An error occured, please contact the administrator. (" + error.message + ")");
 	}
 };

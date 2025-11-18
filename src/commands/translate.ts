@@ -1,6 +1,9 @@
 import { ICommandModule, ICommandDefinition, ICommandsMap } from "../types/commands";
 import { Message } from "whatsapp-web.js";
 import { handleTranslate } from "../handlers/translate";
+import { createChildLogger } from "../lib/logger";
+
+const logger = createChildLogger({ module: 'commands:translate' });
 
 /**
  * TranslateModule handles the !translate command.
@@ -30,7 +33,11 @@ const translate: ICommandDefinition = {
 			// Pass the extracted value to the handler
 			await handleTranslate(message, value);
 		} catch (error: any) {
-			console.error("[Translate Command] Error:", error);
+			logger.error({
+				err: error,
+				chatId: message.from,
+				messageBody: message.body
+			}, 'Translate command failed');
 			message.reply("Failed to process translation command. Please try again.");
 		}
 	}

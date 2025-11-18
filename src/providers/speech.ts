@@ -1,4 +1,7 @@
 import config from "../config";
+import { createChildLogger } from "../lib/logger";
+
+const logger = createChildLogger({ module: 'providers:speech' });
 
 /**
  * @param text The sentence to be converted to speech
@@ -23,7 +26,7 @@ async function ttsRequest(text: string): Promise<Buffer | null> {
 		const audioBuffer = await response.arrayBuffer();
 		return Buffer.from(audioBuffer);
 	} catch (error) {
-		console.error("An error occured (TTS request)", error);
+		logger.error({ err: error, textLength: text?.length }, 'TTS request failed');
 		return null;
 	}
 }

@@ -6,6 +6,9 @@ import { OpenAI } from "openai";
 import ffmpeg from "fluent-ffmpeg";
 import config from "../config";
 import { getConfig } from "../handlers/ai-config";
+import { createChildLogger } from "../lib/logger";
+
+const logger = createChildLogger({ module: 'providers:openai' });
 
 export let openai: OpenAI;
 
@@ -67,7 +70,11 @@ export async function chatCompletion(
 
 		return completion.choices[0].message.content;
 	} catch (error) {
-		console.error(`[OPENAI] Error in chat completion: ${error.message}`);
+		logger.error({
+			err: error,
+			model: options.model || config.openAIModel,
+			messageCount: messages?.length
+		}, 'OpenAI chat completion failed');
 		throw error;
 	}
 }
@@ -103,14 +110,17 @@ export async function transcribeOpenAI(audioBuffer: Buffer): Promise<{ text: str
 			language: config.transcriptionLanguage || ""
 		};
 	} catch (error) {
-		console.error("Transcription error:", error);
+		logger.error({
+			err: error,
+			language: config.transcriptionLanguage
+		}, 'OpenAI transcription failed');
 		throw new Error(`Transcription failed: ${error.message}`);
 	} finally {
 		try {
 			fs.unlinkSync(oggPath);
 			fs.unlinkSync(wavPath);
 		} catch (cleanupError) {
-			console.error("Cleanup error:", cleanupError);
+			logger.warn({ err: cleanupError, oggPath, wavPath }, 'Failed to cleanup temporary transcription files');
 		}
 	}
 }
