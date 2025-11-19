@@ -13,6 +13,12 @@ interface IConfig {
 	// OpenAI Client Configuration
 	openAITimeout: number;
 	openAIMaxRetries: number;
+	// Rate Limiting
+	rateLimitEnabled: boolean;
+	rateLimitPerUser: number;
+	rateLimitPerUserWindow: number;
+	rateLimitGlobal: number;
+	rateLimitGlobalWindow: number;
 	// Access control
 	whitelistedPhoneNumbers: string[];
 	whitelistedEnabled: boolean;
@@ -86,6 +92,12 @@ export const config: IConfig = {
 	// OpenAI Client Configuration
 	openAITimeout: parseInt(process.env.OPENAI_TIMEOUT || "30000"),
 	openAIMaxRetries: parseInt(process.env.OPENAI_MAX_RETRIES || "5"),
+	// Rate Limiting
+	rateLimitEnabled: getEnvBooleanWithDefault("RATE_LIMIT_ENABLED", true), // Default: true
+	rateLimitPerUser: parseInt(process.env.RATE_LIMIT_PER_USER || "10"), // Default: 10 messages per minute
+	rateLimitPerUserWindow: parseInt(process.env.RATE_LIMIT_PER_USER_WINDOW || "60"), // Default: 60 seconds
+	rateLimitGlobal: parseInt(process.env.RATE_LIMIT_GLOBAL || "100"), // Default: 100 messages per minute
+	rateLimitGlobalWindow: parseInt(process.env.RATE_LIMIT_GLOBAL_WINDOW || "60"), // Default: 60 seconds
 	// Access control
 	whitelistedPhoneNumbers: process.env.WHITELISTED_PHONE_NUMBERS?.split(",") || [],
 	whitelistedEnabled: getEnvBooleanWithDefault("WHITELISTED_ENABLED", false),

@@ -8,6 +8,8 @@ import { shouldIgnoreByTimestamp } from "./timestamp";
 import { transcribeMedia } from "./transcription";
 import { dispatchCommand } from "./command";
 import { createChildLogger } from "../lib/logger";
+import { checkRateLimit } from "../middleware/rateLimiter";
+import { RateLimitError } from "../lib/errors/RateLimitError";
 
 const logger = createChildLogger({ module: 'handlers:message' });
 
@@ -24,6 +26,24 @@ async function handleIncomingMessage(message: Message) {
 	if (shouldIgnoreByTimestamp(message)) {
 		logger.debug({ messageId: message.id._serialized }, 'Ignoring old message by timestamp');
 		return;
+	}
+
+	// Check rate limits (before processing message)
+	try {
+		await checkRateLimit(message);
+	} catch (error) {
+		if (error instanceof RateLimitError) {
+			// Send rate limit message to user
+			await message.reply(error.toUserMessage());
+			logger.info({
+				from: message.from,
+				limit: error.limit,
+				retryAfter: error.retryAfter
+			}, 'Rate limit exceeded, message rejected');
+			return;
+		}
+		// Re-throw other errors
+		throw error;
 	}
 
 	// Check group chat settings
