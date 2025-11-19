@@ -42,6 +42,16 @@ export type ChatCompletionMessageParam = {
 	name?: string;
 };
 
+export interface ChatCompletionResult {
+	content: string;
+	usage: {
+		promptTokens: number;
+		completionTokens: number;
+		totalTokens: number;
+	};
+	model: string;
+}
+
 export async function chatCompletion(
 	messages: ChatCompletionMessageParam[],
 	options: {
@@ -50,14 +60,15 @@ export async function chatCompletion(
 		maxTokens?: number;
 		responseFormat?: "text" | "json_object";
 	} = {}
-): Promise<string> {
+): Promise<ChatCompletionResult> {
 	try {
 		if (!openai) {
 			initOpenAI();
 		}
 
+		const model = options.model || config.openAIModel;
 		const completion = await openai.chat.completions.create({
-			model: options.model || config.openAIModel,
+			model,
 			messages: messages,
 			temperature: options.temperature || 0.7,
 			max_tokens: options.maxTokens || config.maxModelTokens,
@@ -68,7 +79,22 @@ export async function chatCompletion(
 			throw new Error("No content in completion response");
 		}
 
-		return completion.choices[0].message.content;
+		// Extract usage information
+		const usage = completion.usage || {
+			prompt_tokens: 0,
+			completion_tokens: 0,
+			total_tokens: 0
+		};
+
+		return {
+			content: completion.choices[0].message.content,
+			usage: {
+				promptTokens: usage.prompt_tokens,
+				completionTokens: usage.completion_tokens,
+				totalTokens: usage.total_tokens
+			},
+			model
+		};
 	} catch (error) {
 		logger.error({
 			err: error,

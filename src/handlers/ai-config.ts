@@ -9,6 +9,7 @@ import { TranscriptionModule } from "../commands/transcription";
 import { TTSModule } from "../commands/tts";
 import { StableDiffusionModule } from "../commands/stable-diffusion";
 import { TranslateModule } from "../commands/translate";
+import { UsageModule } from "../commands/usage";
 import { createChildLogger } from "../lib/logger";
 
 import config from "../config";
@@ -25,7 +26,7 @@ let aiConfig: IAiConfig = {
 
 const initAiConfig = () => {
 	// Register commands
-	[ChatModule, GeneralModule, GptModule, TranscriptionModule, TTSModule, StableDiffusionModule, TranslateModule].forEach((module) => {
+	[ChatModule, GeneralModule, GptModule, TranscriptionModule, TTSModule, StableDiffusionModule, TranslateModule, UsageModule].forEach((module) => {
 		aiConfig.commandsMap[module.key] = module.register();
 	});
 

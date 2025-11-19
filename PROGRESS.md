@@ -576,38 +576,139 @@ RATE_LIMIT_GLOBAL_WINDOW=60
 
 ---
 
+### Day 5: Usage Tracking & Cost Management ✅
+
+**Date:** 2025-11-19
+**Status:** COMPLETED
+**Branch:** `claude/usage-tracking-cost-management-01ExKFirK6YVbhaBdFB5PHMj`
+
+**Objectives:**
+- Implement usage tracking for all OpenAI API calls
+- Calculate costs based on token usage and model pricing
+- Create cost alert system with configurable thresholds
+- Build admin commands for viewing usage statistics
+- Comprehensive testing for all new features
+
+**Completed Tasks:**
+- ✅ Updated OpenAI provider to return usage information (prompt/completion tokens)
+- ✅ Integrated usage tracking in GPT handler (tracks every API call)
+- ✅ Implemented automatic cost calculation based on OpenAI pricing
+- ✅ Created CostMonitor service for daily cost alerts
+- ✅ Built !usage admin commands (stats, user, daily, cost)
+- ✅ Added cost alert configuration to config system
+- ✅ Created comprehensive tests for CostMonitor (10 new tests)
+- ✅ All tests passing (283/283 tests, 100% pass rate) 🎉
+- ✅ Updated .env-example with cost alert configuration
+- ✅ Updated all documentation
+
+**Files Created:**
+- `src/services/costMonitor.ts` - Cost monitoring and alerting service
+- `src/commands/usage.ts` - Admin commands for viewing usage stats
+- `src/services/__tests__/costMonitor.test.ts` - CostMonitor tests (10 tests)
+
+**Files Modified:**
+- `src/providers/openai.ts` - Added ChatCompletionResult interface with usage info
+- `src/handlers/gpt.ts` - Integrated usage tracking with database
+- `src/handlers/ai-config.ts` - Registered UsageModule
+- `src/config.ts` - Added cost alert configuration
+- `.env-example` - Added COST_ALERT_ENABLED and COST_ALERT_THRESHOLD_USD
+
+**Test Results (Final):**
+```
+Test Suites: 12 passed, 12 total
+Tests:       283 passed, 283 total (100% pass rate) 🎉
+Time:        ~27s
+Added:       10 new tests (CostMonitor service)
+```
+
+**Key Features Implemented:**
+
+1. **Usage Tracking:**
+   - Automatic token counting for all GPT requests
+   - Cost calculation based on current OpenAI pricing (gpt-4o, gpt-4o-mini, gpt-3.5-turbo, etc.)
+   - Operation type tracking (CHAT vs VISION)
+   - User-level usage tracking
+   - Database persistence of all usage metrics
+
+2. **Cost Monitoring:**
+   - Daily cost threshold alerts (default: $50/day)
+   - Automatic alert triggering (once per day)
+   - Current daily cost monitoring
+   - User-specific cost tracking
+   - Configurable thresholds via environment variables
+
+3. **Admin Commands:**
+   - `!config usage stats <days>` - Global usage statistics
+   - `!config usage user <days>` - Personal usage statistics
+   - `!config usage daily` - Today's usage summary
+   - `!config usage cost` - Current daily cost with threshold status
+
+4. **Cost Calculation:**
+   - Accurate pricing for all GPT models
+   - Micro-dollar precision (supports SQLite)
+   - Conversion utilities (microToUsd, usdToMicro)
+   - Per-request cost tracking
+
+**Environment Variables Added:**
+```bash
+COST_ALERT_ENABLED=true
+COST_ALERT_THRESHOLD_USD=50
+```
+
+**Current State:**
+- ✅ Usage tracking fully functional
+- ✅ Cost monitoring active with alerting
+- ✅ Admin commands available for stats viewing
+- ✅ 100% test pass rate (283 tests)
+- ✅ Documentation comprehensive and up-to-date
+- ✅ Ready for production deployment
+
+**MVP Progress:**
+- ✅ Week 1: Foundation (Database, Logging, Error Handling) - 100% Complete
+- ✅ Week 2 Day 4: Rate Limiting - 100% Complete
+- ✅ Week 2 Day 5: Usage Tracking & Cost Management - 100% Complete
+- ⏳ Next: Week 2 completion and testing phase
+
+**Documentation:**
+- Updated: PROGRESS.md (Week 2 Day 5 section)
+- Updated: .env-example (cost alert configuration)
+- Updated: Test suite documentation
+
+---
+
 ## Current Sprint Summary
 
-**Active Branch:** `claude/update-docs-run-tests-01XisyS5iRrxqAsYFzAYnkFS`
-**Sprint:** Week 2, Day 4
-**Focus:** Rate Limiting Implementation (MVP Week 2 Day 1-2 work)
+**Active Branch:** `claude/usage-tracking-cost-management-01ExKFirK6YVbhaBdFB5PHMj`
+**Sprint:** Week 2, Day 5
+**Focus:** Usage Tracking & Cost Management (MVP Week 2 Day 3-4 work)
 
-**Completed This Sprint (Week 2 Day 4):**
-- ✅ Implemented Redis client singleton with health checks
-- ✅ Created rate limiter middleware (per-user + global limits)
-- ✅ Integrated rate limiting with message handler
-- ✅ Created comprehensive tests (17 new tests added)
-- ✅ Updated .env-example with Redis and rate limit config
-- ✅ All tests passing (273/273 tests, 100% pass rate) 🎉
+**Completed This Sprint (Week 2 Day 5):**
+- ✅ Implemented comprehensive usage tracking for all OpenAI API calls
+- ✅ Created cost calculation system based on model pricing
+- ✅ Built cost monitoring service with daily threshold alerts
+- ✅ Developed admin commands for viewing usage statistics
+- ✅ Created comprehensive tests (10 new tests added)
+- ✅ Updated .env-example with cost alert configuration
+- ✅ All tests passing (283/283 tests, 100% pass rate) 🎉
 - ✅ Updated all documentation
 
 **Test Status:**
-- **273 tests passing** (100%) 🎉
+- **283 tests passing** (100%) 🎉
 - **0 tests failing**
-- **17 tests added** (3 Redis + 14 rate limiter)
-- All functionality tests passing including new rate limiting tests
+- **10 tests added** (CostMonitor service)
+- All functionality tests passing including new usage tracking tests
 
-**Rate Limiting Features:**
-- ✅ Per-user rate limit: 10 messages/minute (configurable)
-- ✅ Global rate limit: 100 messages/minute (configurable)
-- ✅ Redis-based distributed rate limiting (falls back to memory)
-- ✅ Whitelist bypass support
-- ✅ User-friendly error messages
+**Usage Tracking Features:**
+- ✅ Automatic token counting and cost calculation
+- ✅ Per-user usage tracking with database persistence
+- ✅ Daily cost threshold alerts (configurable, default $50/day)
+- ✅ Admin commands for viewing statistics (global, user, daily, cost)
+- ✅ Support for all GPT models with accurate pricing
 
 **Next Steps:**
-1. Commit and push Week 2 Day 4 rate limiting implementation
-2. Start Week 2 Day 5: Usage Tracking & Cost Management
-3. Implement token counting and cost calculation
+1. Commit and push Week 2 Day 5 usage tracking implementation
+2. Complete Week 2 testing and documentation
+3. Prepare for Week 3 development (Job Queue & Conversation Memory)
 
 ---
 
@@ -665,6 +766,19 @@ RATE_LIMIT_GLOBAL_WINDOW=60
 ---
 
 ## Change Log
+
+### 2025-11-19 (Week 2 Day 5)
+- Implemented comprehensive usage tracking and cost management (MVP Week 2 Day 3-4 work)
+- Updated OpenAI provider to return usage information (tokens, model)
+- Integrated automatic usage tracking in GPT handler for all API calls
+- Created CostMonitor service for daily cost threshold alerts
+- Built admin commands for viewing usage statistics (!config usage)
+- Added cost alert configuration to config system (COST_ALERT_ENABLED, COST_ALERT_THRESHOLD_USD)
+- Created 10 new tests for CostMonitor service
+- All tests passing: 283/283 (100% pass rate) 🎉
+- Updated .env-example with cost alert configuration
+- Updated PROGRESS.md with Week 2 Day 5 completion
+- System now tracks all usage with cost monitoring and alerting
 
 ### 2025-11-19 (Week 2 Day 4)
 - Implemented production-ready rate limiting (MVP Week 2 Day 1-2 work)
@@ -755,4 +869,4 @@ RATE_LIMIT_GLOBAL_WINDOW=60
 
 ---
 
-*Last Updated: 2025-11-19 (Week 2 Day 4)*
+*Last Updated: 2025-11-19 (Week 2 Day 5)*
