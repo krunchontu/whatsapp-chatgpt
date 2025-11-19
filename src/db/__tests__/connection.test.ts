@@ -37,9 +37,9 @@ describe('Database Connection', () => {
     });
 
     it('should execute raw SQL query', async () => {
-      const result = await prisma.$queryRaw<Array<{ result: number }>>`SELECT 1 as result`;
+      const result = await prisma.$queryRaw<Array<{ result: bigint }>>`SELECT 1 as result`;
       expect(result).toHaveLength(1);
-      expect(result[0]).toHaveProperty('result', 1);
+      expect(result[0]).toHaveProperty('result', 1n); // SQLite returns BigInt
     });
   });
 

@@ -249,7 +249,7 @@ export class UsageRepository {
     days: number = 30
   ): Promise<UserUsageStats> {
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    startDate.setDate(startDate.getDate() - (days - 1)); // Include today in the range
     startDate.setHours(0, 0, 0, 0);
 
     const endDate = new Date();
@@ -331,7 +331,7 @@ export class UsageRepository {
    */
   static async getGlobalStats(days: number = 30) {
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    startDate.setDate(startDate.getDate() - (days - 1)); // Include today in the range
     startDate.setHours(0, 0, 0, 0);
 
     const endDate = new Date();

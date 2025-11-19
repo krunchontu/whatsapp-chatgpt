@@ -26,7 +26,7 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'html'],
 
   // Coverage thresholds (MVP target: 80%)
-  coverageThresholds: {
+  coverageThreshold: {
     global: {
       branches: 70,
       functions: 75,
@@ -41,6 +41,7 @@ module.exports = {
   // Transform configuration
   transform: {
     '^.+\\.ts$': ['ts-jest', {
+      isolatedModules: true,
       tsconfig: {
         // Disable strict mode for tests (allow any types in test files)
         strict: false,
@@ -55,13 +56,6 @@ module.exports = {
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,
-
-  // Globals
-  globals: {
-    'ts-jest': {
-      isolatedModules: true,
-    },
-  },
 
   // Timeout (30 seconds for integration tests)
   testTimeout: 30000,

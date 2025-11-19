@@ -1,7 +1,7 @@
 # Open Issues & Blockers
 
 **Last Updated:** 2025-11-18
-**Week:** Week 1 Day 4
+**Week:** Week 1 Day 5
 
 This document tracks all open issues, blockers, and technical debt items discovered during development.
 
@@ -148,6 +148,7 @@ it('should redact apiKey in actual output', () => {
 **Priority:** 🟢 **Low - Can be added in Week 2**
 
 ---
+
 
 ## 📝 Technical Debt
 
@@ -309,6 +310,124 @@ Time:        ~18s
 
 ---
 
+### Issue #R4: Database Schema Not Created for Tests
+**Status:** ✅ Resolved
+**Resolved:** 2025-11-18 (Week 1 Day 5)
+**Component:** Testing Infrastructure
+
+**Description:**
+Repository tests failing with "table does not exist" errors because database schema wasn't being created before test execution.
+
+**Root Cause:**
+- Tests used in-memory SQLite database (`file::memory:`)
+- In-memory database doesn't persist across test processes
+- No global setup to create schema before tests run
+
+**Resolution:**
+1. Changed test database from in-memory to file-based: `file:./test.db`
+2. Updated `.env.test` and `.env` with new DATABASE_URL
+3. Ran `pnpm db:push` to create schema in test.db
+4. Created `jest.globalSetup.js` for future automation (not used yet)
+
+**Results After Fix:**
+```
+Test Suites: 6 failed, 3 passed, 9 total
+Tests:       16 failed, 240 passed, 256 total (93.75% pass rate)
+Time:        ~19s
+```
+
+**Remaining failures:** 16 tests fail due to SQLite BigInt type mismatches (Issue #6), not database schema issues.
+
+---
+
+### Issue #R5: Test Failures Due to SQLite BigInt Type Mismatches
+**Status:** ✅ Resolved
+**Resolved:** 2025-11-18 (Week 1 Day 5)
+**Component:** Testing
+**Impact:** All BigInt-related test failures fixed
+
+**Description:**
+SQLite returned `BigInt` (e.g., `1n`) for numeric values from raw SQL queries, causing test assertions to fail. Additionally, date range calculations in getUserStats and getGlobalStats were off by one day, excluding today from the results.
+
+**Root Causes:**
+1. `connection.test.ts` expected `Number` but SQLite returned `BigInt` for raw SQL
+2. `usage.repository.ts` getUserStats/getGlobalStats calculated date range incorrectly (started N days ago instead of N-1 days ago)
+
+**Resolution:**
+1. **BigInt Fix (connection.test.ts:40-42):**
+   - Changed expected type from `number` to `bigint`
+   - Changed assertion from `1` to `1n`
+   - Updated comment to clarify SQLite behavior
+
+2. **Date Range Fix (usage.repository.ts:252, 334):**
+   - Changed `startDate.getDate() - days` to `startDate.getDate() - (days - 1)`
+   - Now correctly includes today in the daily breakdown
+   - Applied fix to both `getUserStats` and `getGlobalStats` functions
+
+**Test Results:**
+- **Before:** 240/256 tests passing (93.75%)
+- **After:** 255/256 tests passing (99.6%) when run with `--runInBand`
+- **Remaining:** 1 test failure unrelated to BigInt (error handling test)
+
+**Files Modified:**
+- `src/db/__tests__/connection.test.ts` - Fixed BigInt assertion
+- `src/db/repositories/usage.repository.ts` - Fixed date range calculations (2 locations)
+
+---
+
+### Issue #R6: Jest Configuration Deprecated Options
+**Status:** ✅ Resolved
+**Resolved:** 2025-11-18 (Week 1 Day 5)
+**Component:** Testing Configuration
+
+**Description:**
+Jest configuration used deprecated options that generated warnings during test execution.
+
+**Problems Fixed:**
+1. `coverageThresholds` typo (should be `coverageThreshold`)
+2. `ts-jest` config under `globals` is deprecated
+3. `isolatedModules` should be in transform config, not globals
+
+**Resolution:**
+Updated `jest.config.js`:
+1. Changed `coverageThresholds` to `coverageThreshold` (line 29)
+2. Moved `isolatedModules: true` from `globals` section to `transform` config (line 44)
+3. Removed empty `globals` section entirely (lines 60-64)
+
+**Result:**
+- ✅ No more deprecation warnings
+- ✅ Jest config follows current best practices
+- ✅ Future-proof for Jest v30
+
+**Files Modified:**
+- `jest.config.js` - Fixed deprecated options
+
+---
+
+### Issue #R7: Test Database Not in .gitignore
+**Status:** ✅ Resolved
+**Resolved:** 2025-11-18 (Week 1 Day 5)
+**Component:** Version Control
+
+**Description:**
+Test database file `test.db` was generated during test runs but not explicitly listed in `.gitignore`, risking accidental commits.
+
+**Resolution:**
+Added explicit entries to `.gitignore`:
+- `test.db` (explicit entry for clarity)
+- `test.db-journal` (explicit entry for clarity)
+- Added comment noting these are covered by existing `*.db` pattern
+
+**Result:**
+- ✅ Test database files will never be committed
+- ✅ Clean git status after running tests
+- ✅ Clear documentation of test file exclusions
+
+**Files Modified:**
+- `.gitignore` - Added explicit test database entries with explanatory comment
+
+---
+
 ## Issue Workflow
 
 ### Status Indicators
@@ -328,21 +447,32 @@ Time:        ~18s
 
 ## Next Actions
 
-### Immediate (Before Day 5)
-1. ✅ Resolve Issue #1: Run `pnpm install`
-2. ✅ Resolve Issue #2: Execute test suite and fix any failures
-3. ⏳ Plan for Issue #3: Obtain Sentry DSN for staging environment
+### Completed (Week 1 Day 5)
+1. ✅ Install dependencies (`pnpm install`)
+2. ✅ Execute full test suite (256 tests, 93.75% pass rate → 99.6% pass rate)
+3. ✅ Fix database schema issues for tests
+4. ✅ Document all new issues discovered
+5. ✅ Fix SQLite BigInt test failures (Issue #R5)
+6. ✅ Fix Jest configuration deprecated options (Issue #R6)
+7. ✅ Add test.db to .gitignore (Issue #R7)
+8. ✅ Update ISSUES.md with resolved issues
+9. ✅ Improve test pass rate from 93.75% to 99.6%
 
-### Short Term (Week 1 Day 5)
+### Immediate (Day 5 Completion)
+1. ⏳ Commit and push all fixes
+2. ⏳ Plan for Week 2 priorities
+
+### Short Term (Week 2)
+1. Fix remaining 1 test failure (error handling test in cleanup.test.ts)
+2. Obtain Sentry DSN for staging (Issue #3)
+3. Add ESLint rule for console.log (Issue #4)
+4. Enhance logger tests to verify output (Issue #5)
+
+### Medium Term (Week 2-3)
 1. Create integration tests (TD-3)
-2. Verify all tests pass with coverage >= 80%
-3. Configure staging environment with Sentry
-
-### Medium Term (Week 2)
-1. Add ESLint rule for console.log (Issue #4)
-2. Enhance logger tests to verify output (Issue #5)
-3. Move retry config to environment (TD-2)
-4. Fix handleDeleteConversation export (TD-1)
+2. Move retry config to environment (TD-2)
+3. Fix handleDeleteConversation export (TD-1)
+4. Improve test coverage to >= 80%
 
 ---
 
