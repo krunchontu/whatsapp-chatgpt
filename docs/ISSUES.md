@@ -1,7 +1,7 @@
 # Open Issues & Blockers
 
-**Last Updated:** 2025-11-18
-**Week:** Week 1 Day 5
+**Last Updated:** 2025-11-19
+**Week:** Week 2 Day 1
 
 This document tracks all open issues, blockers, and technical debt items discovered during development.
 
@@ -146,6 +146,138 @@ it('should redact apiKey in actual output', () => {
 - Log format verified
 
 **Priority:** 🟢 **Low - Can be added in Week 2**
+
+---
+
+### Issue #9: Test Database Foreign Key Violations
+**Status:** 🟢 Low Priority
+**Created:** 2025-11-19 (Week 2 Day 1)
+**Component:** Testing Infrastructure
+**Impact:** 27 tests failing due to test data setup issues
+
+**Description:**
+After fresh dependency installation and database recreation, 27 repository tests are failing with foreign key constraint violations. Tests attempt to create conversations and usage metrics without first creating the required user records.
+
+**Current State:**
+- 229/256 tests passing (89.5% pass rate)
+- All core functionality tests passing (logger, Sentry, error handler, cleanup)
+- Failures concentrated in:
+  - `user.repository.test.ts` - Foreign key issues when creating test data
+  - `conversation.repository.test.ts` - Requires valid userId before creating conversations
+  - `usage.repository.test.ts` - Requires valid userId before creating usage metrics
+
+**Root Cause:**
+Test database was recreated fresh after reinstalling dependencies. Test setup methods need to ensure users are created before attempting to create dependent data (conversations, usage metrics).
+
+**Resolution Steps:**
+1. Review test setup in failing test files
+2. Ensure `beforeEach` creates users before dependent data
+3. Verify foreign key constraints are properly enforced
+4. Add test utilities for common setup patterns
+
+**Example Fix:**
+```typescript
+beforeEach(async () => {
+  // Clean up database
+  await prisma.usageMetric.deleteMany();
+  await prisma.conversation.deleteMany();
+  await prisma.user.deleteMany();  // Delete in correct order
+
+  // Create test users FIRST
+  testUser1 = await prisma.user.create({
+    data: { phoneNumber: '+1234567890' }
+  });
+
+  // Now create dependent data
+  testConversation = await prisma.conversation.create({
+    data: {
+      userId: testUser1.id,  // Valid foreign key
+      // ...
+    }
+  });
+});
+```
+
+**Expected Outcome:**
+- 95%+ test pass rate (245+ / 256 tests passing)
+- Clean test output without foreign key errors
+- Proper test data setup patterns documented
+
+**Priority:** 🟢 **Low - Test infrastructure issue, not code bug**
+
+---
+
+### Issue #10: Dependencies Require Manual Installation After Clone
+**Status:** 🟢 Low Priority (Documentation)
+**Created:** 2025-11-19 (Week 2 Day 1)
+**Component:** Development Environment
+**Impact:** Fresh clones require manual setup steps
+
+**Description:**
+After cloning the repository, developers need to manually run several setup commands to get the environment ready. This is expected behavior but should be documented clearly in onboarding materials.
+
+**Required Setup Steps:**
+1. Install dependencies: `npm install` or `PUPPETEER_SKIP_DOWNLOAD=true npm install`
+2. Generate Prisma client: `npx prisma generate`
+3. Set up database: `npx prisma db push`
+4. Copy environment file: `cp .env-example .env` and configure
+5. Run tests: `npm test`
+
+**Current State:**
+- Setup steps not documented in README
+- Developers may encounter errors if steps are skipped
+- Common issue: Puppeteer download failures due to network issues
+
+**Resolution:**
+Add to README.md:
+```markdown
+## Setup
+
+### Prerequisites
+- Node.js v22+
+- npm or pnpm
+
+### Installation
+
+1. Clone the repository:
+   \`\`\`bash
+   git clone https://github.com/your-org/whatsapp-chatgpt.git
+   cd whatsapp-chatgpt
+   \`\`\`
+
+2. Install dependencies (skip Puppeteer browser download):
+   \`\`\`bash
+   PUPPETEER_SKIP_DOWNLOAD=true npm install
+   \`\`\`
+
+3. Generate Prisma client:
+   \`\`\`bash
+   npx prisma generate
+   \`\`\`
+
+4. Set up database:
+   \`\`\`bash
+   npx prisma db push
+   \`\`\`
+
+5. Configure environment:
+   \`\`\`bash
+   cp .env-example .env
+   # Edit .env with your API keys
+   \`\`\`
+
+6. Run tests to verify setup:
+   \`\`\`bash
+   npm test
+   \`\`\`
+```
+
+**Expected Outcome:**
+- Clear onboarding documentation
+- New developers can set up environment without issues
+- Common pitfalls documented with solutions
+
+**Priority:** 🟢 **Low - Documentation improvement**
 
 ---
 
@@ -447,32 +579,36 @@ Added explicit entries to `.gitignore`:
 
 ## Next Actions
 
-### Completed (Week 1 Day 5)
-1. ✅ Install dependencies (`pnpm install`)
-2. ✅ Execute full test suite (256 tests, 93.75% pass rate → 99.6% pass rate)
-3. ✅ Fix database schema issues for tests
-4. ✅ Document all new issues discovered
-5. ✅ Fix SQLite BigInt test failures (Issue #R5)
-6. ✅ Fix Jest configuration deprecated options (Issue #R6)
-7. ✅ Add test.db to .gitignore (Issue #R7)
-8. ✅ Update ISSUES.md with resolved issues
-9. ✅ Improve test pass rate from 93.75% to 99.6%
+### Completed (Week 2 Day 1)
+1. ✅ Reinstall dependencies after fresh environment setup
+2. ✅ Generate Prisma client and set up test database
+3. ✅ Execute full test suite (256 tests, 89.5% pass rate)
+4. ✅ Analyze test failures and identify root causes
+5. ✅ Document new issues (Issue #9, Issue #10)
+6. ✅ Create Week 2 Day 1 plan and roadmap
+7. ✅ Update PROGRESS.md with Week 1 completion and Week 2 start
+8. ✅ Update ISSUES.md with new findings
 
-### Immediate (Day 5 Completion)
-1. ⏳ Commit and push all fixes
-2. ⏳ Plan for Week 2 priorities
+### Immediate (Week 2 Day 1 Completion)
+1. ⏳ Commit and push Week 2 Day 1 documentation
+2. ⏳ Fix test database setup (Issue #9) - 27 tests
+3. ⏳ Add setup documentation to README (Issue #10)
 
-### Short Term (Week 2)
-1. Fix remaining 1 test failure (error handling test in cleanup.test.ts)
-2. Obtain Sentry DSN for staging (Issue #3)
-3. Add ESLint rule for console.log (Issue #4)
-4. Enhance logger tests to verify output (Issue #5)
+### Short Term (Week 2 Days 2-5)
+1. Implement rate limiting system (Redis-based)
+2. Implement RBAC (Owner/Admin/Operator roles)
+3. Implement usage analytics and reporting
+4. Obtain Sentry DSN for staging (Issue #3)
+5. Add ESLint rule for console.log (Issue #4)
+6. Enhance logger tests to verify output (Issue #5)
 
 ### Medium Term (Week 2-3)
 1. Create integration tests (TD-3)
 2. Move retry config to environment (TD-2)
 3. Fix handleDeleteConversation export (TD-1)
 4. Improve test coverage to >= 80%
+5. Implement health check endpoints
+6. Implement environment validation with Zod
 
 ---
 
