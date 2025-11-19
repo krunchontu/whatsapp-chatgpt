@@ -18,6 +18,8 @@ import { logger, createChildLogger } from "./lib/logger";
 import { setupGlobalErrorHandlers } from "./middleware/errorHandler";
 import { ConfigurationError } from "./lib/errors";
 import { initSentry } from "./lib/sentry";
+import { initRedis, closeRedis } from "./lib/redis";
+import { initRateLimiters } from "./middleware/rateLimiter";
 
 // Event handlers
 import { onBrowserLaunched } from "./events/browser";
@@ -41,6 +43,14 @@ const start = async () => {
 
 	// Initialize Sentry error tracking (production only)
 	initSentry();
+
+	// Initialize Redis (for rate limiting and job queues)
+	appLogger.debug('Initializing Redis client');
+	initRedis();
+
+	// Initialize rate limiters
+	appLogger.debug('Initializing rate limiters');
+	initRateLimiters();
 
 	appLogger.info('Starting WhatsApp ChatGPT bot');
 	appLogger.debug({
