@@ -46,21 +46,55 @@
 git clone https://github.com/askrella/whatsapp-chatgpt.git
 cd whatsapp-chatgpt
 
-# 2. Install dependencies (using pnpm for better performance)
+# 2. Install dependencies
+# Option A: Using pnpm (recommended, faster)
 pnpm install
 
-# 3. Set up environment
-cp .env-example .env
-# Edit .env and add your OPENAI_API_KEY
+# Option B: Using npm (skip Puppeteer browser download to avoid network issues)
+PUPPETEER_SKIP_DOWNLOAD=true npm install
+
+# 3. Generate Prisma client
+npx prisma generate
 
 # 4. Set up database
-pnpm db:push
+npx prisma db push
 
-# 5. Start the bot
-pnpm start
+# 5. Set up environment
+cp .env-example .env
+# Edit .env and add your OPENAI_API_KEY and other settings
 
-# 6. Scan QR code with WhatsApp
-# QR code will appear in terminal
+# 6. (Optional) Run tests to verify setup
+npm test
+
+# 7. Start the bot
+npm start
+# or: pnpm start
+
+# 8. Scan QR code with WhatsApp
+# QR code will appear in terminal - scan with WhatsApp mobile app
+```
+
+#### Troubleshooting
+
+**Puppeteer Installation Fails:**
+```bash
+# Skip browser download during install
+PUPPETEER_SKIP_DOWNLOAD=true npm install
+```
+
+**Test Failures:**
+```bash
+# Clean and rebuild database
+rm -f test.db test.db-journal
+npx prisma db push
+npm test
+```
+
+**Database Errors:**
+```bash
+# Regenerate Prisma client and recreate database
+npx prisma generate
+npx prisma db push
 ```
 
 ### Docker Deployment (Production)
