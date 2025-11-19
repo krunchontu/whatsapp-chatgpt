@@ -60,6 +60,10 @@ module.exports = {
   // Timeout (30 seconds for integration tests)
   testTimeout: 30000,
 
+  // Run tests sequentially to avoid database conflicts
+  // Tests share the same test.db file, so parallel execution causes race conditions
+  maxWorkers: 1,
+
   // Ignore patterns
   testPathIgnorePatterns: [
     '/node_modules/',
