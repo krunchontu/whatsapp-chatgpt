@@ -19,6 +19,9 @@ interface IConfig {
 	rateLimitPerUserWindow: number;
 	rateLimitGlobal: number;
 	rateLimitGlobalWindow: number;
+	// Cost Monitoring & Alerts
+	costAlertEnabled: boolean;
+	costAlertThresholdUsd: number;
 	// Access control
 	whitelistedPhoneNumbers: string[];
 	whitelistedEnabled: boolean;
@@ -98,6 +101,9 @@ export const config: IConfig = {
 	rateLimitPerUserWindow: parseInt(process.env.RATE_LIMIT_PER_USER_WINDOW || "60"), // Default: 60 seconds
 	rateLimitGlobal: parseInt(process.env.RATE_LIMIT_GLOBAL || "100"), // Default: 100 messages per minute
 	rateLimitGlobalWindow: parseInt(process.env.RATE_LIMIT_GLOBAL_WINDOW || "60"), // Default: 60 seconds
+	// Cost Monitoring & Alerts
+	costAlertEnabled: getEnvBooleanWithDefault("COST_ALERT_ENABLED", true), // Default: true
+	costAlertThresholdUsd: parseFloat(process.env.COST_ALERT_THRESHOLD_USD || "50"), // Default: $50 per day
 	// Access control
 	whitelistedPhoneNumbers: process.env.WHITELISTED_PHONE_NUMBERS?.split(",") || [],
 	whitelistedEnabled: getEnvBooleanWithDefault("WHITELISTED_ENABLED", false),

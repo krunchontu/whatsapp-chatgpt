@@ -8,6 +8,8 @@ import { chatCompletion } from "../providers/openai";
 import * as cli from "../cli/ui";
 import config from "../config";
 import { createChildLogger } from "../lib/logger";
+import { UsageRepository, OperationType } from "../db/repositories/usage.repository";
+import { UserRepository } from "../db/repositories/user.repository";
 
 const logger = createChildLogger({ module: 'handlers:gpt' });
 
@@ -196,7 +198,7 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 			hasVisualContent: hasImage || imageUrls.length > 0
 		}, 'Sending request to OpenAI');
 
-		const response = await chatCompletion(messages, {
+		const result = await chatCompletion(messages, {
 			model,
 			temperature: 0.7
 		});
@@ -204,24 +206,68 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 		const end = Date.now() - start;
 		logger.info({
 			chatId: message.from,
-			model,
+			model: result.model,
 			durationMs: end,
-			responseLength: response.length
+			responseLength: result.content.length,
+			promptTokens: result.usage.promptTokens,
+			completionTokens: result.usage.completionTokens,
+			totalTokens: result.usage.totalTokens
 		}, 'OpenAI response received');
 
-		cli.print(`[GPT] Answer to ${message.from}: ${response}  | OpenAI request took ${end}ms)`);
+		// Track usage and cost
+		try {
+			// Get or create user
+			const user = await UserRepository.findByPhoneNumber(message.from) ||
+			             await UserRepository.create({ phoneNumber: message.from, role: 'USER' });
+
+			// Calculate cost
+			const costMicros = UsageRepository.calculateGptCost(
+				result.model,
+				result.usage.promptTokens,
+				result.usage.completionTokens
+			);
+
+			// Determine operation type
+			const operation = hasImage || imageUrls.length > 0 ? OperationType.VISION : OperationType.CHAT;
+
+			// Save usage metric
+			await UsageRepository.create({
+				userId: user.id,
+				promptTokens: result.usage.promptTokens,
+				completionTokens: result.usage.completionTokens,
+				totalTokens: result.usage.totalTokens,
+				costMicros,
+				model: result.model,
+				operation
+			});
+
+			logger.debug({
+				chatId: message.from,
+				userId: user.id,
+				costUsd: UsageRepository.microToUsd(costMicros),
+				totalTokens: result.usage.totalTokens
+			}, 'Usage tracked');
+		} catch (usageError) {
+			// Don't fail the request if usage tracking fails
+			logger.error({
+				err: usageError,
+				chatId: message.from
+			}, 'Failed to track usage');
+		}
+
+		cli.print(`[GPT] Answer to ${message.from}: ${result.content}  | OpenAI request took ${end}ms)`);
 
 		// TTS reply (Default: disabled)
 		if (getConfig("tts", "enabled")) {
 			logger.debug({ chatId: message.from }, 'Sending TTS reply');
-			sendVoiceMessageReply(message, response);
-			message.reply(response);
+			sendVoiceMessageReply(message, result.content);
+			message.reply(result.content);
 			return;
 		}
 
 		// Default: Text reply
 		logger.debug({ chatId: message.from }, 'Sending text reply');
-		message.reply(response);
+		message.reply(result.content);
 	} catch (error: any) {
 		logger.error({
 			err: error,
