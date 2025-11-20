@@ -10,6 +10,7 @@ import config from "../config";
 import { createChildLogger } from "../lib/logger";
 import { UsageRepository, OperationType } from "../db/repositories/usage.repository";
 import { UserRepository } from "../db/repositories/user.repository";
+import { ConversationRepository } from "../db/repositories/conversation.repository";
 
 const logger = createChildLogger({ module: 'handlers:gpt' });
 
@@ -104,6 +105,10 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 
 		const start = Date.now();
 
+		// Get or create user for conversation tracking
+		const user = await UserRepository.findByPhoneNumber(message.from) ||
+		             await UserRepository.create({ phoneNumber: message.from, role: 'USER' });
+
 		// Build messages array
 		const messages = [];
 
@@ -114,6 +119,26 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 				role: "system",
 				content: config.prePrompt
 			});
+		}
+
+		// Get conversation history (last 10 messages)
+		try {
+			const conversationContext = await ConversationRepository.getContext(user.id);
+			if (conversationContext.length > 0) {
+				logger.debug({
+					chatId: message.from,
+					userId: user.id,
+					messageCount: conversationContext.length
+				}, 'Adding conversation history');
+				messages.push(...conversationContext);
+			}
+		} catch (error) {
+			logger.error({
+				err: error,
+				chatId: message.from,
+				userId: user.id
+			}, 'Failed to retrieve conversation history');
+			// Continue without history if retrieval fails
 		}
 
 		// Add user message with optional image
@@ -214,11 +239,35 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 			totalTokens: result.usage.totalTokens
 		}, 'OpenAI response received');
 
+		// Save conversation messages (user + assistant)
+		try {
+			// Save user message
+			await ConversationRepository.addMessage(user.id, {
+				role: 'user',
+				content: prompt
+			});
+
+			// Save assistant response
+			await ConversationRepository.addMessage(user.id, {
+				role: 'assistant',
+				content: result.content
+			});
+
+			logger.debug({
+				chatId: message.from,
+				userId: user.id
+			}, 'Conversation messages saved');
+		} catch (error) {
+			logger.error({
+				err: error,
+				chatId: message.from,
+				userId: user.id
+			}, 'Failed to save conversation messages');
+			// Continue even if conversation saving fails
+		}
+
 		// Track usage and cost
 		try {
-			// Get or create user
-			const user = await UserRepository.findByPhoneNumber(message.from) ||
-			             await UserRepository.create({ phoneNumber: message.from, role: 'USER' });
 
 			// Calculate cost
 			const costMicros = UsageRepository.calculateGptCost(
@@ -274,7 +323,29 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 			chatId: message.from,
 			prompt: prompt?.substring(0, 100)
 		}, 'GPT request failed');
-		message.reply("An error occurred, please contact the administrator. (" + error.message + ")");
+
+		// Provide user-friendly error messages based on error type
+		let errorMessage: string;
+
+		if (error.message && error.message.includes('Circuit breaker is OPEN')) {
+			// Circuit breaker is open - service temporarily unavailable
+			errorMessage = "I'm experiencing technical difficulties at the moment. Please try again in a few minutes.";
+			logger.warn({ chatId: message.from }, 'Circuit breaker open - failing fast');
+		} else if (error.status === 429 || error.message?.includes('rate limit')) {
+			// Rate limit error
+			errorMessage = "Too many requests. Please wait a moment and try again.";
+		} else if (error.status === 503 || error.status === 500) {
+			// Server error
+			errorMessage = "The AI service is temporarily unavailable. Please try again later.";
+		} else if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
+			// Timeout error
+			errorMessage = "The request took too long. Please try again.";
+		} else {
+			// Generic error
+			errorMessage = "An error occurred while processing your request. Please try again.";
+		}
+
+		message.reply(errorMessage);
 	}
 };
 
@@ -368,6 +439,40 @@ async function sendUrlMedia(message: Message, url: string) {
 			url
 		}, 'Error sending URL media');
 		throw new Error("Failed to send URL media");
+	}
+}
+
+/**
+ * Handle conversation reset/deletion
+ * Clears the conversation history for a user
+ *
+ * @param message - WhatsApp message
+ */
+async function handleDeleteConversation(message: Message): Promise<void> {
+	try {
+		// Get user
+		const user = await UserRepository.findByPhoneNumber(message.from);
+		if (!user) {
+			logger.warn({ chatId: message.from }, 'User not found for conversation reset');
+			await message.reply('No conversation history found.');
+			return;
+		}
+
+		// Clear conversation history
+		await ConversationRepository.clearHistory(user.id);
+
+		logger.info({
+			chatId: message.from,
+			userId: user.id
+		}, 'Conversation history cleared');
+
+		await message.reply('✅ Conversation reset successfully. Starting fresh!');
+	} catch (error) {
+		logger.error({
+			err: error,
+			chatId: message.from
+		}, 'Failed to reset conversation');
+		await message.reply('Failed to reset conversation. Please try again.');
 	}
 }
 

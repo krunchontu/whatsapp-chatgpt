@@ -20,6 +20,9 @@ import { ConfigurationError } from "./lib/errors";
 import { initSentry } from "./lib/sentry";
 import { initRedis, closeRedis } from "./lib/redis";
 import { initRateLimiters } from "./middleware/rateLimiter";
+import { setWhatsAppClient } from "./lib/whatsapp-client";
+import { createTranscriptionWorker } from "./queue/workers/transcription.worker";
+import { startConversationCleanup } from "./db/cleanup-scheduler";
 
 // Event handlers
 import { onBrowserLaunched } from "./events/browser";
@@ -51,6 +54,10 @@ const start = async () => {
 	// Initialize rate limiters
 	appLogger.debug('Initializing rate limiters');
 	initRateLimiters();
+
+	// Start conversation cleanup scheduler (daily job)
+	appLogger.debug('Starting conversation cleanup scheduler');
+	startConversationCleanup();
 
 	appLogger.info('Starting WhatsApp ChatGPT bot');
 	appLogger.debug({
@@ -95,6 +102,9 @@ const start = async () => {
 		}
 	});
 
+	// Set global WhatsApp client for workers and handlers
+	setWhatsAppClient(client);
+
 	// Register event handlers
 	appLogger.debug('Registering event handlers');
 	client.on("browser_launched", onBrowserLaunched);
@@ -108,6 +118,19 @@ const start = async () => {
 	);
 	client.on(Events.MESSAGE_RECEIVED, onMessageReceived);
 	client.on(Events.MESSAGE_CREATE, onMessageCreate);
+
+	// Initialize transcription worker (if Redis enabled)
+	if (config.redis.enabled) {
+		try {
+			appLogger.info('Starting transcription worker');
+			createTranscriptionWorker();
+		} catch (error) {
+			appLogger.error({ err: error }, 'Failed to start transcription worker');
+			// Don't exit - worker is optional, bot can still function
+		}
+	} else {
+		appLogger.warn('Redis disabled, transcription worker will not start');
+	}
 
 	// WhatsApp initialization with error handling
 	try {
