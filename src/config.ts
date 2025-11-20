@@ -27,7 +27,11 @@ interface IConfig {
 	// Cost Monitoring & Alerts
 	costAlertEnabled: boolean;
 	costAlertThresholdUsd: number;
-	// Access control
+	// RBAC: Role-Based Access Control
+	ownerPhoneNumbers: string[];
+	adminPhoneNumbers: string[];
+	operatorPhoneNumbers: string[];
+	// Access control (whitelist for regular users)
 	whitelistedPhoneNumbers: string[];
 	whitelistedEnabled: boolean;
 	// Vision
@@ -114,8 +118,12 @@ export const config: IConfig = {
 	// Cost Monitoring & Alerts
 	costAlertEnabled: getEnvBooleanWithDefault("COST_ALERT_ENABLED", true), // Default: true
 	costAlertThresholdUsd: parseFloat(process.env.COST_ALERT_THRESHOLD_USD || "50"), // Default: $50 per day
-	// Access control
-	whitelistedPhoneNumbers: process.env.WHITELISTED_PHONE_NUMBERS?.split(",") || [],
+	// RBAC: Role-Based Access Control
+	ownerPhoneNumbers: process.env.OWNER_PHONE_NUMBERS?.split(",").filter(n => n.trim()) || [],
+	adminPhoneNumbers: process.env.ADMIN_PHONE_NUMBERS?.split(",").filter(n => n.trim()) || [],
+	operatorPhoneNumbers: process.env.OPERATOR_PHONE_NUMBERS?.split(",").filter(n => n.trim()) || [],
+	// Access control (whitelist for regular users)
+	whitelistedPhoneNumbers: process.env.WHITELISTED_PHONE_NUMBERS?.split(",").filter(n => n.trim()) || [],
 	whitelistedEnabled: getEnvBooleanWithDefault("WHITELISTED_ENABLED", false),
 	// Vision
 	visionEnabled: getEnvBooleanWithDefault("VISION_ENABLED", true),

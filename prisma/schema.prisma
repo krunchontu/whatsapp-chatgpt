@@ -8,12 +8,12 @@
 // 4. All migrations will work with both databases
 
 datasource db {
-  provider = "sqlite"  // Change to "postgresql" when scaling
+  provider = "sqlite" // Change to "postgresql" when scaling
   url      = env("DATABASE_URL")
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   // Optimization: smaller client size
   binaryTargets = ["native"]
 }
@@ -23,19 +23,22 @@ generator client {
 // ============================================== #
 
 // Note: SQLite doesn't support enums, so we use String with app-level validation
-// Valid Role values: "ADMIN" | "USER"
-// - ADMIN: Can configure bot, view usage stats
-// - USER: Can chat with bot
+// Valid Role values: "OWNER" | "ADMIN" | "OPERATOR" | "USER"
+// Role Hierarchy: OWNER (4) > ADMIN (3) > OPERATOR (2) > USER (1)
+// - OWNER: Full system access, can manage all roles
+// - ADMIN: Team lead, can manage operators and users
+// - OPERATOR: Customer service agent, limited access
+// - USER: Customer, can chat with bot
 
 model User {
-  id            String   @id @default(cuid())
-  phoneNumber   String   @unique
-  role          String   @default("USER")  // "ADMIN" | "USER"
-  isWhitelisted Boolean  @default(false)
+  id            String  @id @default(cuid())
+  phoneNumber   String  @unique
+  role          String  @default("USER") // "OWNER" | "ADMIN" | "OPERATOR" | "USER"
+  isWhitelisted Boolean @default(false)
 
   // Timestamps
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   conversations Conversation[]
@@ -50,26 +53,26 @@ model User {
 // ============================================== #
 
 model Conversation {
-  id          String   @id @default(cuid())
-  userId      String
+  id     String @id @default(cuid())
+  userId String
 
   // JSON array of messages: [{role: "user"|"assistant", content: "...", timestamp: "..."}]
   // Stores last 10 messages for context
-  messages    String   // JSON string (SQLite limitation)
+  messages String // JSON string (SQLite limitation)
 
   // Metadata
-  messageCount Int     @default(0)
+  messageCount Int @default(0)
 
   // Timestamps
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  expiresAt   DateTime  // TTL for privacy (7 days default)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime // TTL for privacy (7 days default)
 
   // Relations
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
-  @@index([expiresAt])  // For cleanup job
+  @@index([expiresAt]) // For cleanup job
   @@map("conversations")
 }
 
@@ -84,8 +87,8 @@ model Conversation {
 // - VISION: GPT vision (image analysis)
 
 model UsageMetric {
-  id          String   @id @default(cuid())
-  userId      String
+  id     String @id @default(cuid())
+  userId String
 
   // Token counts
   promptTokens     Int
@@ -95,20 +98,20 @@ model UsageMetric {
   // Cost in USD (stored as integer, divide by 1,000,000 for actual cost)
   // Example: 5250 = $0.005250
   // SQLite doesn't have Decimal type, so we store as Int
-  costMicros   Int  // Cost in micro-dollars (1/1,000,000 of a dollar)
+  costMicros Int // Cost in micro-dollars (1/1,000,000 of a dollar)
 
   // Model and operation
-  model       String  // e.g., "gpt-4o", "whisper-1"
-  operation   String  // "CHAT" | "TRANSCRIPTION" | "VISION"
+  model     String // e.g., "gpt-4o", "whisper-1"
+  operation String // "CHAT" | "TRANSCRIPTION" | "VISION"
 
   // Timestamps
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   // Relations
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
-  @@index([createdAt])  // For daily aggregation
+  @@index([createdAt]) // For daily aggregation
   @@map("usage_metrics")
 }
 
@@ -117,8 +120,8 @@ model UsageMetric {
 // ============================================== #
 
 model SystemConfig {
-  key       String   @id
-  value     String   // JSON string
+  key   String @id
+  value String // JSON string
 
   // Timestamps
   createdAt DateTime @default(now())
