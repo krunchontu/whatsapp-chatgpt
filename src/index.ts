@@ -22,6 +22,7 @@ import { initRedis, closeRedis } from "./lib/redis";
 import { initRateLimiters } from "./middleware/rateLimiter";
 import { setWhatsAppClient } from "./lib/whatsapp-client";
 import { createTranscriptionWorker } from "./queue/workers/transcription.worker";
+import { startConversationCleanup } from "./db/cleanup-scheduler";
 
 // Event handlers
 import { onBrowserLaunched } from "./events/browser";
@@ -53,6 +54,10 @@ const start = async () => {
 	// Initialize rate limiters
 	appLogger.debug('Initializing rate limiters');
 	initRateLimiters();
+
+	// Start conversation cleanup scheduler (daily job)
+	appLogger.debug('Starting conversation cleanup scheduler');
+	startConversationCleanup();
 
 	appLogger.info('Starting WhatsApp ChatGPT bot');
 	appLogger.debug({
