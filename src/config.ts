@@ -10,6 +10,11 @@ dotenv.config();
 
 // Config Interface
 interface IConfig {
+	// Redis Configuration
+	redis: {
+		enabled: boolean;
+		url: string;
+	};
 	// OpenAI Client Configuration
 	openAITimeout: number;
 	openAIMaxRetries: number;
@@ -92,6 +97,11 @@ function getEnvCustomModerationParams(): { [key: string]: boolean } {
 
 // Config
 export const config: IConfig = {
+	// Redis Configuration
+	redis: {
+		enabled: getEnvBooleanWithDefault("REDIS_ENABLED", true), // Default: true
+		url: process.env.REDIS_URL || "redis://localhost:6379", // Default: redis://localhost:6379
+	},
 	// OpenAI Client Configuration
 	openAITimeout: parseInt(process.env.OPENAI_TIMEOUT || "30000"),
 	openAIMaxRetries: parseInt(process.env.OPENAI_MAX_RETRIES || "5"),
