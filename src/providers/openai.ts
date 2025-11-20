@@ -7,8 +7,17 @@ import ffmpeg from "fluent-ffmpeg";
 import config from "../config";
 import { getConfig } from "../handlers/ai-config";
 import { createChildLogger } from "../lib/logger";
+import { CircuitBreaker } from "../lib/circuit-breaker";
 
 const logger = createChildLogger({ module: 'providers:openai' });
+
+// Circuit breaker for OpenAI API
+const openaiCircuitBreaker = new CircuitBreaker({
+	name: 'OpenAI API',
+	failureThreshold: 5,        // Open circuit after 5 consecutive failures
+	resetTimeout: 60000,         // Wait 60 seconds before trying again
+	successThreshold: 2          // Require 2 successes to close circuit
+});
 
 export let openai: OpenAI;
 
@@ -61,48 +70,51 @@ export async function chatCompletion(
 		responseFormat?: "text" | "json_object";
 	} = {}
 ): Promise<ChatCompletionResult> {
-	try {
-		if (!openai) {
-			initOpenAI();
+	// Use circuit breaker to protect against cascading failures
+	return openaiCircuitBreaker.execute(async () => {
+		try {
+			if (!openai) {
+				initOpenAI();
+			}
+
+			const model = options.model || config.openAIModel;
+			const completion = await openai.chat.completions.create({
+				model,
+				messages: messages,
+				temperature: options.temperature || 0.7,
+				max_tokens: options.maxTokens || config.maxModelTokens,
+				response_format: options.responseFormat ? { type: options.responseFormat } : undefined
+			});
+
+			if (!completion.choices[0]?.message?.content) {
+				throw new Error("No content in completion response");
+			}
+
+			// Extract usage information
+			const usage = completion.usage || {
+				prompt_tokens: 0,
+				completion_tokens: 0,
+				total_tokens: 0
+			};
+
+			return {
+				content: completion.choices[0].message.content,
+				usage: {
+					promptTokens: usage.prompt_tokens,
+					completionTokens: usage.completion_tokens,
+					totalTokens: usage.total_tokens
+				},
+				model
+			};
+		} catch (error) {
+			logger.error({
+				err: error,
+				model: options.model || config.openAIModel,
+				messageCount: messages?.length
+			}, 'OpenAI chat completion failed');
+			throw error;
 		}
-
-		const model = options.model || config.openAIModel;
-		const completion = await openai.chat.completions.create({
-			model,
-			messages: messages,
-			temperature: options.temperature || 0.7,
-			max_tokens: options.maxTokens || config.maxModelTokens,
-			response_format: options.responseFormat ? { type: options.responseFormat } : undefined
-		});
-
-		if (!completion.choices[0]?.message?.content) {
-			throw new Error("No content in completion response");
-		}
-
-		// Extract usage information
-		const usage = completion.usage || {
-			prompt_tokens: 0,
-			completion_tokens: 0,
-			total_tokens: 0
-		};
-
-		return {
-			content: completion.choices[0].message.content,
-			usage: {
-				promptTokens: usage.prompt_tokens,
-				completionTokens: usage.completion_tokens,
-				totalTokens: usage.total_tokens
-			},
-			model
-		};
-	} catch (error) {
-		logger.error({
-			err: error,
-			model: options.model || config.openAIModel,
-			messageCount: messages?.length
-		}, 'OpenAI chat completion failed');
-		throw error;
-	}
+	});
 }
 
 export async function transcribeOpenAI(audioBuffer: Buffer): Promise<{ text: string; language: string }> {

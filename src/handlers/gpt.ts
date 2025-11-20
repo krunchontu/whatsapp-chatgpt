@@ -323,7 +323,29 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 			chatId: message.from,
 			prompt: prompt?.substring(0, 100)
 		}, 'GPT request failed');
-		message.reply("An error occurred, please contact the administrator. (" + error.message + ")");
+
+		// Provide user-friendly error messages based on error type
+		let errorMessage: string;
+
+		if (error.message && error.message.includes('Circuit breaker is OPEN')) {
+			// Circuit breaker is open - service temporarily unavailable
+			errorMessage = "I'm experiencing technical difficulties at the moment. Please try again in a few minutes.";
+			logger.warn({ chatId: message.from }, 'Circuit breaker open - failing fast');
+		} else if (error.status === 429 || error.message?.includes('rate limit')) {
+			// Rate limit error
+			errorMessage = "Too many requests. Please wait a moment and try again.";
+		} else if (error.status === 503 || error.status === 500) {
+			// Server error
+			errorMessage = "The AI service is temporarily unavailable. Please try again later.";
+		} else if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
+			// Timeout error
+			errorMessage = "The request took too long. Please try again.";
+		} else {
+			// Generic error
+			errorMessage = "An error occurred while processing your request. Please try again.";
+		}
+
+		message.reply(errorMessage);
 	}
 };
 
