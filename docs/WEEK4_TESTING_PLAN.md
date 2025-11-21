@@ -151,41 +151,41 @@
 
 ---
 
-### 3B. Role Command Tests (~20 tests) ⏸️ PENDING
+### 3B. Role Command Tests (20 tests) ✅ COMPLETE
 
 **File:** `src/commands/__tests__/role.test.ts`
+**Status:** ✅ ALL 20 TESTS PASSING
+**Completed:** 2025-11-21
 
 **Test Categories:**
 
----
+**A. !role list command (4 tests)** ✅
+- ✅ List all users by role (ADMIN)
+- ✅ List users as OWNER
+- ✅ Deny permission for OPERATOR
+- ✅ Deny permission for USER
 
-**A. !role list command (4 tests)**
-- ✅ List all users by role
-- ✅ Require ADMIN+ permission
-- ✅ Display role counts
-- ✅ Handle empty user list
+**B. !role info command (5 tests)** ✅
+- ✅ Show OWNER role information (ADMIN)
+- ✅ Show ADMIN role information (OWNER)
+- ✅ Show OPERATOR role information (ADMIN)
+- ✅ Deny permission for non-ADMIN
+- ✅ Handle missing phone number parameter
 
-**B. !role info command (5 tests)**
-- ✅ Show user role and permissions
-- ✅ Display OWNER permissions
-- ✅ Display ADMIN permissions
-- ✅ Display OPERATOR permissions
-- ✅ Display USER permissions
-
-**C. !role promote command (6 tests)**
-- ✅ Promote USER to OPERATOR (ADMIN+)
-- ✅ Promote OPERATOR to ADMIN (OWNER only)
-- ✅ Promote USER to OWNER (OWNER only)
+**C. !role promote command (6 tests)** ✅
+- ✅ Promote USER to OPERATOR (ADMIN)
+- ✅ Promote USER to ADMIN (OWNER only)
+- ✅ Deny ADMIN promoting to ADMIN
+- ✅ Deny ADMIN promoting to OWNER
 - ✅ Create user if doesn't exist
-- ✅ Log promotion to audit
-- ✅ Deny insufficient permissions
+- ✅ Handle invalid role
 
-**D. !role demote command (5 tests)**
-- ✅ Demote OPERATOR to USER (ADMIN+)
+**D. !role demote command (5 tests)** ✅
+- ✅ Demote OPERATOR to USER (ADMIN)
 - ✅ Demote ADMIN to OPERATOR (OWNER only)
-- ✅ Cannot demote yourself
-- ✅ Cannot demote OWNER (unless by another OWNER)
-- ✅ Log demotion to audit
+- ✅ Deny ADMIN demoting ADMIN
+- ✅ Prevent self-demotion
+- ✅ Handle user not found
 
 ---
 
@@ -321,11 +321,11 @@
 3. ✅ Test input validation and error cases
 4. ✅ Verify all tests pass (20/20 passing)
 
-### Phase 3B: Role Command Layer (20 tests)
-1. Create `role.test.ts`
-2. Test all !role commands with permissions
-3. Test input validation and error cases
-4. Verify all tests pass
+### Phase 3B: Role Command Layer (20 tests) ✅ COMPLETE
+1. ✅ Create `role.test.ts`
+2. ✅ Test all !role commands with permissions
+3. ✅ Test input validation and error cases
+4. ✅ Verify all tests pass (20/20 passing)
 
 ### Phase 4: Integration Tests (20 tests)
 1. Create `audit-integration.test.ts`
@@ -360,13 +360,13 @@
 - **Phase 1 (Repository):** ✅ 36/35 tests COMPLETE
 - **Phase 2 (Service):** ✅ 30/30 tests COMPLETE
 - **Phase 3A (Audit Commands):** ✅ 20/20 tests COMPLETE
-- **Phase 3B (Role Commands):** ⏸️ 0/20 tests PENDING
+- **Phase 3B (Role Commands):** ✅ 20/20 tests COMPLETE
 - **Phase 4 (Integration):** ⏸️ 0/20 tests PENDING
 - **Phase 5 (Edge Cases):** ⏸️ 0/45 tests PENDING
-- **New Tests:** 86 / 170+ (51%)
-- **Total Current:** 369 tests (36 repo + 30 service + 20 audit commands + 283 baseline)
+- **New Tests:** 106 / 170+ (62%)
+- **Total Current:** 389 tests (36 repo + 30 service + 20 audit + 20 role + 283 baseline)
 - **Total Target:** 450+ tests
-- **Estimated Time Remaining:** 3-4 hours
+- **Estimated Time Remaining:** 2-3 hours
 
 ---
 
