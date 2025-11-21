@@ -43,6 +43,7 @@ model User {
   // Relations
   conversations Conversation[]
   usageMetrics  UsageMetric[]
+  auditLogs     AuditLog[]
 
   @@index([phoneNumber])
   @@map("users")
@@ -128,6 +129,52 @@ model SystemConfig {
   updatedAt DateTime @updatedAt
 
   @@map("system_config")
+}
+
+// ============================================== #
+//              Audit Logging                     #
+// ============================================== #
+
+// Note: SQLite doesn't support enums, so we use String with app-level validation
+// Valid AuditCategory values: "AUTH" | "CONFIG" | "ADMIN" | "SECURITY"
+// - AUTH: Authentication and authorization events (role changes, permission denials)
+// - CONFIG: Configuration changes (bot settings, system config)
+// - ADMIN: Administrative actions (usage queries, audit log views)
+// - SECURITY: Security events (rate limits, moderation flags, circuit breaker)
+
+model AuditLog {
+  id String @id @default(cuid())
+
+  // Who performed the action (nullable for system-generated events)
+  userId      String?
+  phoneNumber String // Always track phone number
+  userRole    String // Role at time of action
+
+  // What happened
+  action      String // e.g., "ROLE_CHANGE", "CONFIG_UPDATE", "PERMISSION_DENIED"
+  category    String // "AUTH" | "CONFIG" | "ADMIN" | "SECURITY"
+  description String // Human-readable description
+
+  // Context (JSON string with additional metadata)
+  // Examples:
+  // - Role change: {"oldRole": "USER", "newRole": "OPERATOR", "targetUserId": "xyz"}
+  // - Config update: {"setting": "gpt.model", "oldValue": "gpt-3.5", "newValue": "gpt-4o"}
+  // - Permission denied: {"action": "VIEW_AUDIT_LOGS", "requiredRole": "ADMIN"}
+  metadata String // JSON string (SQLite limitation)
+
+  // When
+  createdAt DateTime @default(now())
+
+  // Relations (nullable because system events may not have a user)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Indexes for common queries
+  @@index([userId, createdAt])
+  @@index([category, createdAt])
+  @@index([action, createdAt])
+  @@index([phoneNumber, createdAt])
+  @@index([createdAt]) // For retention policy cleanup
+  @@map("audit_logs")
 }
 
 // ============================================== #
