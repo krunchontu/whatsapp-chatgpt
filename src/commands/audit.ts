@@ -65,7 +65,7 @@ const list: ICommandDefinition = {
 
 			// Log this audit log access
 			await AuditLogger.logAuditLogViewed({
-				user: requestingUser,
+				performedBy: requestingUser,
 				filters: { startDate, limit: 20 }
 			});
 
@@ -126,7 +126,7 @@ const userLogs: ICommandDefinition = {
 
 			// Log this audit log access
 			await AuditLogger.logAuditLogViewed({
-				user: requestingUser,
+				performedBy: requestingUser,
 				filters: { phoneNumber, limit: 20 }
 			});
 
@@ -260,10 +260,9 @@ const exportLogs: ICommandDefinition = {
 
 			// Log the export
 			await AuditLogger.logAuditLogExported({
-				user: requestingUser,
+				performedBy: requestingUser,
 				format: 'JSON',
-				recordCount: JSON.parse(jsonData).length,
-				dateRange: `${days} days`
+				recordCount: JSON.parse(jsonData).length
 			});
 
 			// In a real implementation, you would upload this to cloud storage and send a link

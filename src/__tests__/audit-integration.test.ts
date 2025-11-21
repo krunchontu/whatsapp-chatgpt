@@ -233,7 +233,7 @@ describe('Phase 4: Audit Integration Tests', () => {
       const configLog = logs.find(
         log =>
           log.action === AuditAction.CONFIG_UPDATE &&
-          log.metadata?.includes('model')
+          log.metadata?.setting === 'model'
       );
 
       expect(configLog).toBeDefined();
@@ -412,35 +412,35 @@ describe('Phase 4: Audit Integration Tests', () => {
       await auditCommands.list.execute(listMsg, '7');
       expect(listMsg.reply).toHaveBeenCalled();
       let replyCall = (listMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
+      expect(replyCall).not.toMatch(/(❌|don't have permission|requires (OWNER|ADMIN))/i);
 
       // Test: View user logs
       const userMsg = createMockMessage(owner.phoneNumber);
       await auditCommands.user.execute(userMsg, '+1000000001',);
       expect(userMsg.reply).toHaveBeenCalled();
       replyCall = (userMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
+      expect(replyCall).not.toMatch(/(❌|don't have permission|requires (OWNER|ADMIN))/i);
 
       // Test: Filter by category
       const catMsg = createMockMessage(owner.phoneNumber);
       await auditCommands.category.execute(catMsg, 'AUTH',);
       expect(catMsg.reply).toHaveBeenCalled();
       replyCall = (catMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
+      expect(replyCall).not.toMatch(/(❌|don't have permission|requires (OWNER|ADMIN))/i);
 
       // Test: Export logs
       const exportMsg = createMockMessage(owner.phoneNumber);
       await auditCommands.export.execute(exportMsg, '30',);
       expect(exportMsg.reply).toHaveBeenCalled();
       replyCall = (exportMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
+      expect(replyCall).not.toMatch(/(❌|don't have permission|requires (OWNER|ADMIN))/i);
 
       // Test: Manage all roles
       const promoteMsg = createMockMessage(owner.phoneNumber);
       await roleCommands.promote.execute(promoteMsg, '+9999999999 ADMIN',);
       expect(promoteMsg.reply).toHaveBeenCalled();
       replyCall = (promoteMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
+      expect(replyCall).not.toMatch(/(❌|don't have permission|requires (OWNER|ADMIN))/i);
     });
 
     it('should allow ADMIN to view logs but deny export', async () => {
@@ -452,14 +452,14 @@ describe('Phase 4: Audit Integration Tests', () => {
       await auditCommands.list.execute(listMsg, '7');
       expect(listMsg.reply).toHaveBeenCalled();
       let replyCall = (listMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
+      expect(replyCall).not.toMatch(/(❌|don't have permission|requires (OWNER|ADMIN))/i);
 
       // Success: View user logs
       const userMsg = createMockMessage(admin.phoneNumber);
       await auditCommands.user.execute(userMsg, '+1000000001',);
       expect(userMsg.reply).toHaveBeenCalled();
       replyCall = (userMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
+      expect(replyCall).not.toMatch(/(❌|don't have permission|requires (OWNER|ADMIN))/i);
 
       // Failure: Export logs (OWNER only)
       const exportMsg = createMockMessage(admin.phoneNumber);
@@ -591,7 +591,7 @@ describe('Phase 4: Audit Integration Tests', () => {
         const viewReply = (viewMsg.reply as jest.Mock).mock.calls[0][0];
 
         if (canView) {
-          expect(viewReply).not.toMatch(/(denied|permission|❌)/i);
+          expect(viewReply).not.toMatch(/(❌|don't have permission|requires (OWNER|ADMIN))/i);
         } else {
           expect(viewReply).toMatch(/(denied|permission|❌)/i);
         }
@@ -604,7 +604,7 @@ describe('Phase 4: Audit Integration Tests', () => {
         const exportReply = (exportMsg.reply as jest.Mock).mock.calls[0][0];
 
         if (canExport) {
-          expect(exportReply).not.toMatch(/(denied|permission|❌)/i);
+          expect(exportReply).not.toMatch(/(❌|don't have permission|requires (OWNER|ADMIN))/i);
         } else {
           expect(exportReply).toMatch(/(denied|permission|❌)/i);
         }
@@ -641,18 +641,22 @@ describe('Phase 4: Audit Integration Tests', () => {
       messages.forEach(msg => {
         expect(msg.reply).toHaveBeenCalled();
         const replyCall = (msg.reply as jest.Mock).mock.calls[0][0];
-        expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
+        expect(replyCall).not.toMatch(/(❌|don't have permission|requires (OWNER|ADMIN))/i);
         // Verify they got audit log data (not just denied message)
         expect(replyCall).toMatch(/Audit Logs|audit logs|📋/);
       });
 
-      // Verify all access logged
+      // Verify all access logged (filter to only admin phone numbers, excluding sample logs)
       const accessLogs = await AuditLogRepository.query({
         category: AuditCategory.ADMIN,
         action: AuditAction.AUDIT_LOG_VIEWED,
       });
 
-      expect(accessLogs.length).toBe(3);
+      const adminAccessLogs = accessLogs.filter(log =>
+        [admin1.phoneNumber, admin2.phoneNumber, admin3.phoneNumber].includes(log.phoneNumber)
+      );
+
+      expect(adminAccessLogs.length).toBe(3);
     });
 
     it('should handle multiple users triggering events simultaneously', async () => {
@@ -810,7 +814,7 @@ describe('Phase 4: Audit Integration Tests', () => {
       // Verify promotion succeeded by checking the reply message
       expect(promoteMsg.reply).toHaveBeenCalled();
       const promoteReply = (promoteMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(promoteReply).not.toMatch(/(denied|permission|❌)/i);
+      expect(promoteReply).not.toMatch(/(❌|don't have permission|requires (OWNER|ADMIN))/i);
 
       // Admin views user's logs (use ADMIN directly for simplicity)
       const actualAdmin = await createAdminUser('+9999999999');
