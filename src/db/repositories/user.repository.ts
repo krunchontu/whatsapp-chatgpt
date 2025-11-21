@@ -195,14 +195,25 @@ export class UserRepository {
   // ============================================== #
 
   /**
-   * Check if user is admin
+   * Check if user is admin (accepts User object or user ID)
    *
-   * @param userId - User ID
-   * @returns True if admin
+   * @param userOrId - User object or User ID string
+   * @returns True if admin or owner
    */
-  static async isAdmin(userId: string): Promise<boolean> {
-    const user = await this.findById(userId);
-    return user?.role === UserRole.ADMIN;
+  static isAdmin(userOrId: User | string | null | undefined): boolean | Promise<boolean> {
+    // Handle User object directly (synchronous check)
+    if (typeof userOrId === 'object' && userOrId !== null) {
+      return userOrId.role === UserRole.ADMIN || userOrId.role === UserRole.OWNER;
+    }
+
+    // Handle user ID (async check)
+    if (typeof userOrId === 'string') {
+      return this.findById(userOrId).then(user =>
+        user?.role === UserRole.ADMIN || user?.role === UserRole.OWNER || false
+      );
+    }
+
+    return false;
   }
 
   /**
@@ -287,14 +298,23 @@ export class UserRepository {
   }
 
   /**
-   * Check if user is owner
+   * Check if user is owner (accepts User object or user ID)
    *
-   * @param userId - User ID
+   * @param userOrId - User object or User ID string
    * @returns True if owner
    */
-  static async isOwner(userId: string): Promise<boolean> {
-    const user = await this.findById(userId);
-    return user?.role === UserRole.OWNER;
+  static isOwner(userOrId: User | string | null | undefined): boolean | Promise<boolean> {
+    // Handle User object directly (synchronous check)
+    if (typeof userOrId === 'object' && userOrId !== null) {
+      return userOrId.role === UserRole.OWNER;
+    }
+
+    // Handle user ID (async check)
+    if (typeof userOrId === 'string') {
+      return this.findById(userOrId).then(user => user?.role === UserRole.OWNER || false);
+    }
+
+    return false;
   }
 
   /**
