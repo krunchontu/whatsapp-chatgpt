@@ -11,6 +11,7 @@
 
 import { prisma } from '../client';
 import type { User } from '@prisma/client';
+import { AuditLogger } from '../../services/auditLogger';
 
 /**
  * Valid user roles (app-level validation for SQLite string field)
@@ -231,20 +232,58 @@ export class UserRepository {
    * Promote user to admin
    *
    * @param userId - User ID
+   * @param performedBy - User performing the action (for audit logging)
    * @returns Updated user
    */
-  static async promoteToAdmin(userId: string): Promise<User> {
-    return this.update(userId, { role: UserRole.ADMIN });
+  static async promoteToAdmin(userId: string, performedBy?: User): Promise<User> {
+    const targetUser = await this.findById(userId);
+    if (!targetUser) {
+      throw new Error(`User not found: ${userId}`);
+    }
+
+    const oldRole = targetUser.role;
+    const updatedUser = await this.update(userId, { role: UserRole.ADMIN });
+
+    // Audit logging
+    if (performedBy) {
+      await AuditLogger.logRoleChange({
+        performedBy,
+        targetUser: updatedUser,
+        oldRole,
+        newRole: UserRole.ADMIN,
+      });
+    }
+
+    return updatedUser;
   }
 
   /**
    * Demote admin to regular user
    *
    * @param userId - User ID
+   * @param performedBy - User performing the action (for audit logging)
    * @returns Updated user
    */
-  static async demoteToUser(userId: string): Promise<User> {
-    return this.update(userId, { role: UserRole.USER });
+  static async demoteToUser(userId: string, performedBy?: User): Promise<User> {
+    const targetUser = await this.findById(userId);
+    if (!targetUser) {
+      throw new Error(`User not found: ${userId}`);
+    }
+
+    const oldRole = targetUser.role;
+    const updatedUser = await this.update(userId, { role: UserRole.USER });
+
+    // Audit logging
+    if (performedBy) {
+      await AuditLogger.logRoleChange({
+        performedBy,
+        targetUser: updatedUser,
+        oldRole,
+        newRole: UserRole.USER,
+      });
+    }
+
+    return updatedUser;
   }
 
   /**
@@ -319,20 +358,58 @@ export class UserRepository {
    * Promote user to owner
    *
    * @param userId - User ID
+   * @param performedBy - User performing the action (for audit logging)
    * @returns Updated user
    */
-  static async promoteToOwner(userId: string): Promise<User> {
-    return this.update(userId, { role: UserRole.OWNER });
+  static async promoteToOwner(userId: string, performedBy?: User): Promise<User> {
+    const targetUser = await this.findById(userId);
+    if (!targetUser) {
+      throw new Error(`User not found: ${userId}`);
+    }
+
+    const oldRole = targetUser.role;
+    const updatedUser = await this.update(userId, { role: UserRole.OWNER });
+
+    // Audit logging
+    if (performedBy) {
+      await AuditLogger.logRoleChange({
+        performedBy,
+        targetUser: updatedUser,
+        oldRole,
+        newRole: UserRole.OWNER,
+      });
+    }
+
+    return updatedUser;
   }
 
   /**
    * Promote user to operator
    *
    * @param userId - User ID
+   * @param performedBy - User performing the action (for audit logging)
    * @returns Updated user
    */
-  static async promoteToOperator(userId: string): Promise<User> {
-    return this.update(userId, { role: UserRole.OPERATOR });
+  static async promoteToOperator(userId: string, performedBy?: User): Promise<User> {
+    const targetUser = await this.findById(userId);
+    if (!targetUser) {
+      throw new Error(`User not found: ${userId}`);
+    }
+
+    const oldRole = targetUser.role;
+    const updatedUser = await this.update(userId, { role: UserRole.OPERATOR });
+
+    // Audit logging
+    if (performedBy) {
+      await AuditLogger.logRoleChange({
+        performedBy,
+        targetUser: updatedUser,
+        oldRole,
+        newRole: UserRole.OPERATOR,
+      });
+    }
+
+    return updatedUser;
   }
 
   /**
@@ -398,20 +475,44 @@ export class UserRepository {
    * Add user to whitelist
    *
    * @param userId - User ID
+   * @param performedBy - User performing the action (for audit logging)
    * @returns Updated user
    */
-  static async addToWhitelist(userId: string): Promise<User> {
-    return this.update(userId, { isWhitelisted: true });
+  static async addToWhitelist(userId: string, performedBy?: User): Promise<User> {
+    const updatedUser = await this.update(userId, { isWhitelisted: true });
+
+    // Audit logging
+    if (performedBy) {
+      await AuditLogger.logWhitelistChange({
+        performedBy,
+        targetPhoneNumber: updatedUser.phoneNumber,
+        action: 'ADD',
+      });
+    }
+
+    return updatedUser;
   }
 
   /**
    * Remove user from whitelist
    *
    * @param userId - User ID
+   * @param performedBy - User performing the action (for audit logging)
    * @returns Updated user
    */
-  static async removeFromWhitelist(userId: string): Promise<User> {
-    return this.update(userId, { isWhitelisted: false });
+  static async removeFromWhitelist(userId: string, performedBy?: User): Promise<User> {
+    const updatedUser = await this.update(userId, { isWhitelisted: false });
+
+    // Audit logging
+    if (performedBy) {
+      await AuditLogger.logWhitelistChange({
+        performedBy,
+        targetPhoneNumber: updatedUser.phoneNumber,
+        action: 'REMOVE',
+      });
+    }
+
+    return updatedUser;
   }
 
   /**
