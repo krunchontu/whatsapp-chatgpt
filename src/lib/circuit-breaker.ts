@@ -7,6 +7,7 @@
  */
 
 import { logger } from './logger';
+import { AuditLogger } from '../services/auditLogger';
 
 export enum CircuitState {
   CLOSED = 'CLOSED',     // Normal operation, requests allowed
@@ -133,6 +134,15 @@ export class CircuitBreaker {
           },
           'Circuit breaker closed (service recovered)'
         );
+
+        // Log circuit breaker state change to audit log
+        await AuditLogger.logCircuitBreakerChange({
+          service: this.options.name,
+          state: 'CLOSED',
+          failureCount: 0
+        }).catch(err => {
+          logger.error({ err }, 'Failed to log circuit breaker state change');
+        });
       }
     } else if (this.state === CircuitState.CLOSED) {
       // Reset failure count on success
@@ -183,6 +193,15 @@ export class CircuitBreaker {
       },
       'Circuit breaker opened (service unavailable)'
     );
+
+    // Log circuit breaker state change to audit log
+    AuditLogger.logCircuitBreakerChange({
+      service: this.options.name,
+      state: 'OPEN',
+      failureCount: this.failureCount
+    }).catch(err => {
+      logger.error({ err }, 'Failed to log circuit breaker state change');
+    });
   }
 
   /**

@@ -1,6 +1,8 @@
 import * as cli from "../cli/ui";
 import config from "../config";
 import { openai, initOpenAI } from "../providers/openai";
+import { AuditLogger } from "../services/auditLogger";
+import { UserRepository } from "../db/repositories/user.repository";
 
 // Custom moderation parameters
 interface CustomModerationParams {
@@ -75,12 +77,30 @@ async function customModeration(content: string, parameters: CustomModerationPar
 /**
  * Execute moderation with both input and output checks
  */
-async function executeModeration(userInput: string, llmResponse?: string): Promise<boolean> {
+async function executeModeration(userInput: string, llmResponse?: string, phoneNumber?: string): Promise<boolean> {
 	try {
 		// Input moderation
 		const inputModeration = await checkModerationFlag(userInput);
 		if (inputModeration.flagged) {
 			cli.print(`[MODERATION] Input flagged: ${JSON.stringify(inputModeration.categories)}`);
+
+			// Log moderation flag to audit log
+			if (phoneNumber) {
+				const user = await UserRepository.findByPhoneNumber(phoneNumber);
+				if (user) {
+					const flaggedCategories = Object.entries(inputModeration.categories || {})
+						.filter(([_, flagged]) => flagged)
+						.map(([category, _]) => category);
+
+					await AuditLogger.logModerationFlag({
+						user,
+						flaggedCategories
+					}).catch(err => {
+						cli.print(`[MODERATION] Error logging audit: ${err.message}`);
+					});
+				}
+			}
+
 			return false;
 		}
 
@@ -89,6 +109,24 @@ async function executeModeration(userInput: string, llmResponse?: string): Promi
 			const outputModeration = await checkModerationFlag(llmResponse);
 			if (outputModeration.flagged) {
 				cli.print(`[MODERATION] Output flagged: ${JSON.stringify(outputModeration.categories)}`);
+
+				// Log moderation flag to audit log
+				if (phoneNumber) {
+					const user = await UserRepository.findByPhoneNumber(phoneNumber);
+					if (user) {
+						const flaggedCategories = Object.entries(outputModeration.categories || {})
+							.filter(([_, flagged]) => flagged)
+							.map(([category, _]) => category);
+
+						await AuditLogger.logModerationFlag({
+							user,
+							flaggedCategories
+						}).catch(err => {
+							cli.print(`[MODERATION] Error logging audit: ${err.message}`);
+						});
+					}
+				}
+
 				return false;
 			}
 

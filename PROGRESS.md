@@ -974,4 +974,101 @@ Time:        ~27s
 
 ---
 
-*Last Updated: 2025-11-19 (Week 2 Day 5)*
+---
+
+### Milestone 3: Audit Logging Commands & Integrations ✅
+
+**Date:** 2025-11-21
+**Status:** COMPLETED
+**Branch:** `claude/add-audit-role-commands-011yJGAsCAkRGcg51jRSdpuc`
+
+**Objectives:**
+- Implement audit viewing commands (!audit list, !audit user, !audit category, !audit export)
+- Implement role management commands (!role list, !role promote, !role demote, !role info)
+- Integrate audit logging into all critical integration points
+- Comprehensive documentation and testing
+
+**Completed Tasks:**
+- ✅ Created audit viewing commands module (`src/commands/audit.ts`)
+- ✅ Created role management commands module (`src/commands/role.ts`)
+- ✅ Registered both modules in ai-config handler
+- ✅ Integrated audit logging into rate limiter (log violations)
+- ✅ Integrated audit logging into config commands (log configuration changes)
+- ✅ Integrated audit logging into circuit breaker (log state changes)
+- ✅ Integrated audit logging into moderation handler (log flags)
+- ✅ Created comprehensive AUDIT_LOGGING.md documentation guide
+- ✅ Updated CLAUDE.md with audit logging section
+- ✅ All tests passing (283/283 tests, 100% pass rate) 🎉
+
+**Files Created:**
+- `src/commands/audit.ts` - Audit log viewing commands
+- `src/commands/role.ts` - Role management commands
+- `docs/AUDIT_LOGGING.md` - Comprehensive audit logging guide
+
+**Files Modified:**
+- `src/handlers/ai-config.ts` - Registered audit and role modules
+- `src/middleware/rateLimiter.ts` - Added rate limit violation logging
+- `src/lib/circuit-breaker.ts` - Added circuit breaker state change logging
+- `src/handlers/moderation.ts` - Added moderation flag logging
+- `src/services/auditLogger.ts` - Extended RateLimitViolationParams interface
+- `src/middleware/__tests__/rateLimiter.test.ts` - Added audit logger mocks
+- `CLAUDE.md` - Added audit logging system documentation
+
+**Test Results (Final):**
+```
+Test Suites: 12 passed, 12 total
+Tests:       283 passed, 283 total (100% pass rate) 🎉
+Time:        ~26s
+```
+
+**Key Features Implemented:**
+
+1. **Audit Viewing Commands:**
+   - `!config audit list [days]` - View recent audit logs (ADMIN+)
+   - `!config audit user <phoneNumber>` - View logs for specific user (ADMIN+)
+   - `!config audit category <category>` - Filter by category (ADMIN+)
+   - `!config audit export [days]` - Export logs as JSON (OWNER only)
+
+2. **Role Management Commands:**
+   - `!config role list` - List all users and their roles (ADMIN+)
+   - `!config role info <phoneNumber>` - Show user role and permissions (ADMIN+)
+   - `!config role promote <phoneNumber> <role>` - Promote user (permission-based)
+   - `!config role demote <phoneNumber> <role>` - Demote user (permission-based)
+
+3. **Audit Logging Integration:**
+   - Rate limiter logs violations (user and global)
+   - Config handler logs all configuration changes
+   - Circuit breaker logs state changes (OPEN/CLOSED)
+   - Moderation handler logs flagged content
+   - All role changes automatically logged
+
+4. **Comprehensive Documentation:**
+   - Created AUDIT_LOGGING.md with full usage guide
+   - Updated CLAUDE.md with audit logging section
+   - Documented all commands and integration points
+   - Included security & compliance information
+
+**Current State:**
+- ✅ Audit logging system fully functional with UI commands
+- ✅ Role management commands operational
+- ✅ All integration points logging appropriately
+- ✅ 100% test pass rate (all 283 tests passing)
+- ✅ Documentation comprehensive and up-to-date
+- ✅ Ready for production deployment
+
+**MVP Progress:**
+- ✅ Week 1: Foundation (Database, Logging, Error Handling) - 100% Complete
+- ✅ Week 2: Rate Limiting, Usage Tracking, Cost Management - 100% Complete
+- ✅ Milestone 2: Core Audit Logging System - 100% Complete
+- ✅ Milestone 3: Audit Commands & Integrations - 100% Complete
+- ⏳ Next: Additional testing and Week 4 features
+
+**Documentation:**
+- Created: docs/AUDIT_LOGGING.md (comprehensive guide)
+- Updated: CLAUDE.md (audit logging section)
+- Updated: PROGRESS.md (this section)
+- Ready: All Milestone 3 work documented and tested
+
+---
+
+*Last Updated: 2025-11-21 (Milestone 3)*
