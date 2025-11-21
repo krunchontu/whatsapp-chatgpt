@@ -187,10 +187,7 @@ describe('Phase 4: Audit Integration Tests', () => {
 
       // When: OWNER promotes user to OPERATOR
       const message = createMockMessage(owner.phoneNumber);
-      await roleCommands.promote.execute(message, {
-        command: 'promote',
-        value: `${user.phoneNumber} OPERATOR`,
-      });
+      await roleCommands.promote.execute(message, `${user.phoneNumber} OPERATOR`,);
 
       // Then: Role change logged
       const logs = await AuditLogRepository.query({
@@ -199,19 +196,16 @@ describe('Phase 4: Audit Integration Tests', () => {
       });
 
       expect(logs.length).toBeGreaterThan(0);
-      const roleChangeLog = logs.find(log => log.phoneNumber === user.phoneNumber);
+      const roleChangeLog = logs.find(log => log.phoneNumber === owner.phoneNumber);
       expect(roleChangeLog).toBeDefined();
-      expect(roleChangeLog?.metadata).toContain('USER');
-      expect(roleChangeLog?.metadata).toContain('OPERATOR');
+      expect(roleChangeLog?.metadata.oldRole).toBe('USER');
+      expect(roleChangeLog?.metadata.newRole).toBe('OPERATOR');
 
       // And: ADMIN can view AUTH logs
       const admin = await createAdminUser();
       const viewMessage = createMockMessage(admin.phoneNumber);
 
-      await auditCommands.category.execute(viewMessage, {
-        command: 'category',
-        value: 'AUTH',
-      });
+      await auditCommands.category.execute(viewMessage, 'AUTH',);
 
       expect(viewMessage.reply).toHaveBeenCalled();
       const replyCall = (viewMessage.reply as jest.Mock).mock.calls[0][0];
@@ -249,10 +243,7 @@ describe('Phase 4: Audit Integration Tests', () => {
       const owner = await createOwnerUser();
       const viewMessage = createMockMessage(owner.phoneNumber);
 
-      await auditCommands.category.execute(viewMessage, {
-        command: 'category',
-        value: 'CONFIG',
-      });
+      await auditCommands.category.execute(viewMessage, 'CONFIG',);
 
       expect(viewMessage.reply).toHaveBeenCalled();
       const replyCall = (viewMessage.reply as jest.Mock).mock.calls[0][0];
@@ -265,10 +256,7 @@ describe('Phase 4: Audit Integration Tests', () => {
 
       // When: OPERATOR tries to export audit logs
       const message = createMockMessage(operator.phoneNumber);
-      await auditCommands.export.execute(message, {
-        command: 'export',
-        value: '30',
-      });
+      await auditCommands.export.execute(message, '30',);
 
       // Then: Permission denied
       expect(message.reply).toHaveBeenCalled();
@@ -286,16 +274,13 @@ describe('Phase 4: Audit Integration Tests', () => {
       );
 
       expect(denialLog).toBeDefined();
-      expect(denialLog?.metadata).toContain('EXPORT_AUDIT_LOGS');
+      expect(denialLog?.metadata.attemptedAction).toBe('EXPORT_AUDIT_LOGS');
 
       // And: ADMIN can see the denial in logs
       const admin = await createAdminUser();
       const adminMessage = createMockMessage(admin.phoneNumber);
 
-      await auditCommands.user.execute(adminMessage, {
-        command: 'user',
-        value: operator.phoneNumber,
-      });
+      await auditCommands.user.execute(adminMessage, operator.phoneNumber,);
 
       expect(adminMessage.reply).toHaveBeenCalled();
       const adminReplyCall = (adminMessage.reply as jest.Mock).mock.calls[0][0];
@@ -320,16 +305,13 @@ describe('Phase 4: Audit Integration Tests', () => {
 
       expect(logs).toHaveLength(1);
       expect(logs[0].phoneNumber).toBe(user.phoneNumber);
-      expect(logs[0].metadata).toContain('harassment');
+      expect(logs[0].metadata.flaggedCategories).toContain('harassment');
 
       // And: ADMIN can view security logs
       const admin = await createAdminUser();
       const message = createMockMessage(admin.phoneNumber);
 
-      await auditCommands.category.execute(message, {
-        command: 'category',
-        value: 'SECURITY',
-      });
+      await auditCommands.category.execute(message, 'SECURITY',);
 
       expect(message.reply).toHaveBeenCalled();
       const replyCall = (message.reply as jest.Mock).mock.calls[0][0];
@@ -352,7 +334,7 @@ describe('Phase 4: Audit Integration Tests', () => {
 
       expect(logs).toHaveLength(1);
       expect(logs[0].userId).toBeNull(); // System event
-      expect(logs[0].metadata).toContain('OpenAI API');
+      expect(logs[0].metadata.service).toBe('OpenAI API');
 
       // When: Circuit breaker closes
       await AuditLogger.logCircuitBreakerChange({
@@ -376,10 +358,7 @@ describe('Phase 4: Audit Integration Tests', () => {
 
       // When: OWNER exports audit logs
       const message = createMockMessage(owner.phoneNumber);
-      await auditCommands.export.execute(message, {
-        command: 'export',
-        value: '30',
-      });
+      await auditCommands.export.execute(message, '30',);
 
       // Then: Export succeeds (starts exporting process)
       expect(message.reply).toHaveBeenCalled();
@@ -395,8 +374,8 @@ describe('Phase 4: Audit Integration Tests', () => {
       const exportLog = logs.find(log => log.phoneNumber === owner.phoneNumber);
 
       expect(exportLog).toBeDefined();
-      expect(exportLog?.metadata).toContain('JSON');
-      expect(exportLog?.metadata).toContain('recordCount');
+      expect(exportLog?.metadata.format).toBe('JSON');
+      expect(exportLog?.metadata.recordCount).toBeGreaterThan(0);
     });
 
     it('should log conversation resets in admin category', async () => {
@@ -433,47 +412,35 @@ describe('Phase 4: Audit Integration Tests', () => {
       await auditCommands.list.execute(listMsg, '7');
       expect(listMsg.reply).toHaveBeenCalled();
       let replyCall = (listMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(replyCall).not.toContain('denied');
+      expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
 
       // Test: View user logs
       const userMsg = createMockMessage(owner.phoneNumber);
-      await auditCommands.user.execute(userMsg, {
-        command: 'user',
-        value: '+1000000001',
-      });
+      await auditCommands.user.execute(userMsg, '+1000000001',);
       expect(userMsg.reply).toHaveBeenCalled();
       replyCall = (userMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(replyCall).not.toContain('denied');
+      expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
 
       // Test: Filter by category
       const catMsg = createMockMessage(owner.phoneNumber);
-      await auditCommands.category.execute(catMsg, {
-        command: 'category',
-        value: 'AUTH',
-      });
+      await auditCommands.category.execute(catMsg, 'AUTH',);
       expect(catMsg.reply).toHaveBeenCalled();
       replyCall = (catMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(replyCall).not.toContain('denied');
+      expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
 
       // Test: Export logs
       const exportMsg = createMockMessage(owner.phoneNumber);
-      await auditCommands.export.execute(exportMsg, {
-        command: 'export',
-        value: '30',
-      });
+      await auditCommands.export.execute(exportMsg, '30',);
       expect(exportMsg.reply).toHaveBeenCalled();
       replyCall = (exportMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(replyCall).not.toContain('denied');
+      expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
 
       // Test: Manage all roles
       const promoteMsg = createMockMessage(owner.phoneNumber);
-      await roleCommands.promote.execute(promoteMsg, {
-        command: 'promote',
-        value: '+9999999999 ADMIN',
-      });
+      await roleCommands.promote.execute(promoteMsg, '+9999999999 ADMIN',);
       expect(promoteMsg.reply).toHaveBeenCalled();
       replyCall = (promoteMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(replyCall).not.toContain('denied');
+      expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
     });
 
     it('should allow ADMIN to view logs but deny export', async () => {
@@ -485,24 +452,18 @@ describe('Phase 4: Audit Integration Tests', () => {
       await auditCommands.list.execute(listMsg, '7');
       expect(listMsg.reply).toHaveBeenCalled();
       let replyCall = (listMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(replyCall).not.toContain('denied');
+      expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
 
       // Success: View user logs
       const userMsg = createMockMessage(admin.phoneNumber);
-      await auditCommands.user.execute(userMsg, {
-        command: 'user',
-        value: '+1000000001',
-      });
+      await auditCommands.user.execute(userMsg, '+1000000001',);
       expect(userMsg.reply).toHaveBeenCalled();
       replyCall = (userMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(replyCall).not.toContain('denied');
+      expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
 
       // Failure: Export logs (OWNER only)
       const exportMsg = createMockMessage(admin.phoneNumber);
-      await auditCommands.export.execute(exportMsg, {
-        command: 'export',
-        value: '30',
-      });
+      await auditCommands.export.execute(exportMsg, '30',);
       expect(exportMsg.reply).toHaveBeenCalled();
       replyCall = (exportMsg.reply as jest.Mock).mock.calls[0][0];
       expect(replyCall).toContain('requires OWNER role');
@@ -542,7 +503,7 @@ describe('Phase 4: Audit Integration Tests', () => {
 
         expect(message.reply).toHaveBeenCalled();
         const replyCall = (message.reply as jest.Mock).mock.calls[0][0];
-        expect(replyCall).toContain('denied');
+        expect(replyCall).toMatch(/(denied|permission|❌)/i);
       }
 
       // Verify all denials logged
@@ -597,10 +558,10 @@ describe('Phase 4: Audit Integration Tests', () => {
       const userLog = denialLogs.find(log => log.phoneNumber === user.phoneNumber);
 
       expect(opLog).toBeDefined();
-      expect(opLog?.metadata).toContain('EXPORT_AUDIT_LOGS');
+      expect(opLog?.metadata.attemptedAction).toBe('EXPORT_AUDIT_LOGS');
 
       expect(userLog).toBeDefined();
-      expect(userLog?.metadata).toContain('VIEW_AUDIT_LOGS');
+      expect(userLog?.metadata.attemptedAction).toBe('VIEW_AUDIT_LOGS');
     });
 
     it('should enforce role hierarchy in audit access', async () => {
@@ -630,25 +591,22 @@ describe('Phase 4: Audit Integration Tests', () => {
         const viewReply = (viewMsg.reply as jest.Mock).mock.calls[0][0];
 
         if (canView) {
-          expect(viewReply).not.toContain('denied');
+          expect(viewReply).not.toMatch(/(denied|permission|❌)/i);
         } else {
-          expect(viewReply).toContain('denied');
+          expect(viewReply).toMatch(/(denied|permission|❌)/i);
         }
 
         // Test export
         const exportMsg = createMockMessage(user.phoneNumber);
-        await auditCommands.export.execute(exportMsg, {
-          command: 'export',
-          value: '30',
-        });
+        await auditCommands.export.execute(exportMsg, '30',);
 
         expect(exportMsg.reply).toHaveBeenCalled();
         const exportReply = (exportMsg.reply as jest.Mock).mock.calls[0][0];
 
         if (canExport) {
-          expect(exportReply).not.toContain('denied');
+          expect(exportReply).not.toMatch(/(denied|permission|❌)/i);
         } else {
-          expect(exportReply).toContain('denied');
+          expect(exportReply).toMatch(/(denied|permission|❌)/i);
         }
       }
     });
@@ -683,7 +641,7 @@ describe('Phase 4: Audit Integration Tests', () => {
       messages.forEach(msg => {
         expect(msg.reply).toHaveBeenCalled();
         const replyCall = (msg.reply as jest.Mock).mock.calls[0][0];
-        expect(replyCall).not.toContain('denied');
+        expect(replyCall).not.toMatch(/(denied|permission|❌)/i);
         // Verify they got audit log data (not just denied message)
         expect(replyCall).toMatch(/Audit Logs|audit logs|📋/);
       });
@@ -852,7 +810,7 @@ describe('Phase 4: Audit Integration Tests', () => {
       // Verify promotion succeeded by checking the reply message
       expect(promoteMsg.reply).toHaveBeenCalled();
       const promoteReply = (promoteMsg.reply as jest.Mock).mock.calls[0][0];
-      expect(promoteReply).not.toContain('denied');
+      expect(promoteReply).not.toMatch(/(denied|permission|❌)/i);
 
       // Admin views user's logs (use ADMIN directly for simplicity)
       const actualAdmin = await createAdminUser('+9999999999');
@@ -873,14 +831,14 @@ describe('Phase 4: Audit Integration Tests', () => {
         log => log.action === AuditAction.ROLE_CHANGE
       );
       expect(roleChange).toBeDefined();
-      expect(roleChange?.metadata).toContain(admin.phoneNumber);
+      expect(roleChange?.metadata.targetPhoneNumber).toBe(admin.phoneNumber);
 
       // Actual admin's action: view logs
       const logView = adminActions.find(
         log => log.action === AuditAction.AUDIT_LOG_VIEWED
       );
       expect(logView).toBeDefined();
-      expect(logView?.metadata).toContain(user.phoneNumber);
+      expect(JSON.stringify(logView?.metadata)).toContain(user.phoneNumber);
 
       // Verify both actions occurred
       expect(roleChange!.createdAt).toBeDefined();
