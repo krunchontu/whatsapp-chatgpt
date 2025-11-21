@@ -113,47 +113,51 @@
 
 ---
 
-### 3. Audit Command Tests (~20 tests)
+### 3A. Audit Command Tests (20 tests) ✅ COMPLETE
 
 **File:** `src/commands/__tests__/audit.test.ts`
+**Status:** ✅ ALL 20 TESTS PASSING
+**Completed:** 2025-11-21
 
 **Test Categories:**
 
-**A. !audit list command (6 tests)**
-- ✅ List recent logs (default 7 days)
-- ✅ List logs with custom day count
-- ✅ Require ADMIN+ permission
-- ✅ Deny USER/OPERATOR access
-- ✅ Handle invalid day count
-- ✅ Display formatted output
+**A. !audit list command (6 tests)** ✅
+- ✅ List recent logs with default 7 days (ADMIN)
+- ✅ List logs with custom day count (OWNER)
+- ✅ Deny permission for OPERATOR
+- ✅ Deny permission for USER
+- ✅ Handle invalid day count (500, 0, "abc")
+- ✅ Handle no audit logs found
 
-**B. !audit user command (5 tests)**
-- ✅ View logs for specific phone number
-- ✅ Require ADMIN+ permission
-- ✅ Handle user not found
-- ✅ Handle user with no logs
-- ✅ Display formatted output
+**B. !audit user command (5 tests)** ✅
+- ✅ Show audit logs for specific user (ADMIN)
+- ✅ Deny permission for non-ADMIN
+- ✅ Handle missing phone number parameter
+- ✅ Handle user with no audit logs
+- ✅ Handle repository error
 
-**C. !audit category command (5 tests)**
-- ✅ Filter by AUTH category
-- ✅ Filter by CONFIG category
-- ✅ Filter by ADMIN category
-- ✅ Filter by SECURITY category
+**C. !audit category command (5 tests)** ✅
+- ✅ Filter by AUTH category (ADMIN)
+- ✅ Filter by SECURITY category (OWNER)
+- ✅ Deny permission for non-ADMIN
 - ✅ Handle invalid category
+- ✅ Handle missing category parameter
 
-**D. !audit export command (4 tests)**
-- ✅ Export logs as JSON (OWNER only)
-- ✅ Deny ADMIN/OPERATOR/USER access
-- ✅ Export with date range
-- ✅ Handle large exports (preview mode)
+**D. !audit export command (4 tests)** ✅
+- ✅ Export audit logs as JSON (OWNER)
+- ✅ Export with custom day range (90 days)
+- ✅ Deny permission for ADMIN (OWNER only)
+- ✅ Handle invalid day count (400, -5, "abc")
 
 ---
 
-### 4. Role Command Tests (~20 tests)
+### 3B. Role Command Tests (~20 tests) ⏸️ PENDING
 
 **File:** `src/commands/__tests__/role.test.ts`
 
 **Test Categories:**
+
+---
 
 **A. !role list command (4 tests)**
 - ✅ List all users by role
@@ -311,12 +315,17 @@
 4. ✅ Test metadata handling
 5. ✅ Verify all tests pass (30/30 passing)
 
-### Phase 3: Command Layer (40 tests)
-1. Create `audit.test.ts` (20 tests)
-2. Create `role.test.ts` (20 tests)
-3. Test all commands with permissions
-4. Test error cases
-5. Verify all tests pass
+### Phase 3A: Audit Command Layer (20 tests) ✅ COMPLETE
+1. ✅ Create `audit.test.ts`
+2. ✅ Test all !audit commands with permissions
+3. ✅ Test input validation and error cases
+4. ✅ Verify all tests pass (20/20 passing)
+
+### Phase 3B: Role Command Layer (20 tests)
+1. Create `role.test.ts`
+2. Test all !role commands with permissions
+3. Test input validation and error cases
+4. Verify all tests pass
 
 ### Phase 4: Integration Tests (20 tests)
 1. Create `audit-integration.test.ts`
@@ -350,13 +359,14 @@
 - **Baseline Tests:** 283 passing (100%)
 - **Phase 1 (Repository):** ✅ 36/35 tests COMPLETE
 - **Phase 2 (Service):** ✅ 30/30 tests COMPLETE
-- **Phase 3 (Commands):** ⏸️ 0/40 tests PENDING
+- **Phase 3A (Audit Commands):** ✅ 20/20 tests COMPLETE
+- **Phase 3B (Role Commands):** ⏸️ 0/20 tests PENDING
 - **Phase 4 (Integration):** ⏸️ 0/20 tests PENDING
 - **Phase 5 (Edge Cases):** ⏸️ 0/45 tests PENDING
-- **New Tests:** 66 / 170+ (39%)
-- **Total Current:** 349 tests (36 repo + 30 service + 283 baseline)
+- **New Tests:** 86 / 170+ (51%)
+- **Total Current:** 369 tests (36 repo + 30 service + 20 audit commands + 283 baseline)
 - **Total Target:** 450+ tests
-- **Estimated Time Remaining:** 4-5 hours
+- **Estimated Time Remaining:** 3-4 hours
 
 ---
 
