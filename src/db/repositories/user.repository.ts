@@ -14,13 +14,26 @@ import type { User } from '@prisma/client';
 
 /**
  * Valid user roles (app-level validation for SQLite string field)
+ * Role Hierarchy: OWNER (4) > ADMIN (3) > OPERATOR (2) > USER (1)
  */
 export const UserRole = {
-  ADMIN: 'ADMIN',
-  USER: 'USER',
+  OWNER: 'OWNER',    // Level 4: Full system access, can manage all roles
+  ADMIN: 'ADMIN',    // Level 3: Team lead, can manage operators and users
+  OPERATOR: 'OPERATOR', // Level 2: Customer service agent, limited access
+  USER: 'USER',      // Level 1: Customer, chat only
 } as const;
 
 export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
+
+/**
+ * Role level mapping for hierarchy checks
+ */
+export const RoleLevel: Record<UserRoleType, number> = {
+  [UserRole.OWNER]: 4,
+  [UserRole.ADMIN]: 3,
+  [UserRole.OPERATOR]: 2,
+  [UserRole.USER]: 1,
+};
 
 /**
  * User creation data (omit auto-generated fields)
@@ -54,7 +67,9 @@ export class UserRepository {
   static async create(data: CreateUserData): Promise<User> {
     // Validate role if provided
     if (data.role && !Object.values(UserRole).includes(data.role)) {
-      throw new Error(`Invalid role: ${data.role}. Must be ADMIN or USER.`);
+      throw new Error(
+        `Invalid role: ${data.role}. Must be one of: ${Object.values(UserRole).join(', ')}.`
+      );
     }
 
     return prisma.user.create({
@@ -124,7 +139,9 @@ export class UserRepository {
   static async update(id: string, data: UpdateUserData): Promise<User> {
     // Validate role if provided
     if (data.role && !Object.values(UserRole).includes(data.role)) {
-      throw new Error(`Invalid role: ${data.role}. Must be ADMIN or USER.`);
+      throw new Error(
+        `Invalid role: ${data.role}. Must be one of: ${Object.values(UserRole).join(', ')}.`
+      );
     }
 
     return prisma.user.update({
@@ -228,6 +245,127 @@ export class UserRepository {
    */
   static async demoteToUser(userId: string): Promise<User> {
     return this.update(userId, { role: UserRole.USER });
+  }
+
+  /**
+   * Check if user is owner
+   *
+   * @param userId - User ID
+   * @returns True if owner
+   */
+  static async isOwner(userId: string): Promise<boolean> {
+    const user = await this.findById(userId);
+    return user?.role === UserRole.OWNER;
+  }
+
+  /**
+   * Check if user is owner by phone number
+   *
+   * @param phoneNumber - Phone number
+   * @returns True if owner
+   */
+  static async isOwnerByPhone(phoneNumber: string): Promise<boolean> {
+    const user = await this.findByPhoneNumber(phoneNumber);
+    return user?.role === UserRole.OWNER;
+  }
+
+  /**
+   * Check if user is operator
+   *
+   * @param userId - User ID
+   * @returns True if operator
+   */
+  static async isOperator(userId: string): Promise<boolean> {
+    const user = await this.findById(userId);
+    return user?.role === UserRole.OPERATOR;
+  }
+
+  /**
+   * Check if user is operator by phone number
+   *
+   * @param phoneNumber - Phone number
+   * @returns True if operator
+   */
+  static async isOperatorByPhone(phoneNumber: string): Promise<boolean> {
+    const user = await this.findByPhoneNumber(phoneNumber);
+    return user?.role === UserRole.OPERATOR;
+  }
+
+  /**
+   * Get all owner users
+   *
+   * @returns Array of owner users
+   */
+  static async findAllOwners(): Promise<User[]> {
+    return prisma.user.findMany({
+      where: { role: UserRole.OWNER },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  /**
+   * Get all operator users
+   *
+   * @returns Array of operator users
+   */
+  static async findAllOperators(): Promise<User[]> {
+    return prisma.user.findMany({
+      where: { role: UserRole.OPERATOR },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  /**
+   * Promote user to owner
+   *
+   * @param userId - User ID
+   * @returns Updated user
+   */
+  static async promoteToOwner(userId: string): Promise<User> {
+    return this.update(userId, { role: UserRole.OWNER });
+  }
+
+  /**
+   * Promote user to operator
+   *
+   * @param userId - User ID
+   * @returns Updated user
+   */
+  static async promoteToOperator(userId: string): Promise<User> {
+    return this.update(userId, { role: UserRole.OPERATOR });
+  }
+
+  /**
+   * Get role level for comparison
+   *
+   * @param role - User role
+   * @returns Role level (1-4)
+   */
+  static getRoleLevel(role: UserRoleType): number {
+    return RoleLevel[role];
+  }
+
+  /**
+   * Check if one role has higher level than another
+   *
+   * @param role1 - First role
+   * @param role2 - Second role
+   * @returns True if role1 > role2
+   */
+  static isRoleHigher(role1: UserRoleType, role2: UserRoleType): boolean {
+    return this.getRoleLevel(role1) > this.getRoleLevel(role2);
+  }
+
+  /**
+   * Check if user can manage another user based on role hierarchy
+   * Rule: You can only manage users with lower role level than yours
+   *
+   * @param managerRole - Manager's role
+   * @param targetRole - Target user's role
+   * @returns True if manager can manage target
+   */
+  static canManageRole(managerRole: UserRoleType, targetRole: UserRoleType): boolean {
+    return this.isRoleHigher(managerRole, targetRole);
   }
 
   // ============================================== #
