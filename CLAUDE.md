@@ -284,3 +284,94 @@ RATE_LIMIT_GLOBAL=100             # 100 messages per minute total
 - Health check endpoint expected at localhost:3000/health (not yet implemented)
 - Memory limits: 512M max, 256M reserved
 - Uses tini as init system for proper signal handling
+
+## Audit Logging System
+
+### Overview
+Comprehensive audit logging tracks all administrative actions, security events, and configuration changes for security monitoring, compliance (GDPR), and accountability.
+
+### What's Logged
+- **Authentication & Authorization**: Role changes, whitelist modifications, permission denials
+- **Configuration**: Bot settings changes, system configuration updates
+- **Administrative**: Usage queries, audit log access, cost alerts, conversation resets
+- **Security**: Rate limit violations, moderation flags, circuit breaker events
+
+### Audit Commands
+All commands require ADMIN+ role unless specified.
+
+```bash
+# View recent audit logs (default: 7 days)
+!config audit list [days]
+
+# View logs for specific user
+!config audit user <phoneNumber>
+
+# Filter by category (AUTH, CONFIG, ADMIN, SECURITY)
+!config audit category <category>
+
+# Export audit logs as JSON (OWNER only)
+!config audit export [days]
+```
+
+### Role Management Commands
+All commands require ADMIN+ role (some require OWNER).
+
+```bash
+# List all users and their roles
+!config role list
+
+# View user role and permissions
+!config role info <phoneNumber>
+
+# Promote user to role (OWNER for OWNER/ADMIN, ADMIN+ for OPERATOR/USER)
+!config role promote <phoneNumber> <role>
+
+# Demote user to role (same permissions as promote)
+!config role demote <phoneNumber> <role>
+```
+
+### Integration Points
+Audit logging is automatically integrated:
+- `src/middleware/rateLimiter.ts` - Rate limit violations
+- `src/handlers/ai-config.ts` - Configuration changes
+- `src/lib/circuit-breaker.ts` - Service degradation/recovery
+- `src/handlers/moderation.ts` - Content moderation flags
+- `src/db/repositories/user.repository.ts` - Role changes, whitelist updates
+
+### Retention Policy
+- **Default**: 90 days (GDPR compliant)
+- **Configurable**: Set `AUDIT_LOG_RETENTION_DAYS` environment variable
+- **Automatic cleanup**: Daily scheduler deletes expired logs
+
+### Programmatic Access
+```typescript
+import { AuditLogRepository, AuditCategory } from './db/repositories/auditLog.repository';
+import { AuditLogger } from './services/auditLogger';
+
+// Query audit logs
+const logs = await AuditLogRepository.query({
+  category: AuditCategory.SECURITY,
+  startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+  limit: 100
+});
+
+// Log custom event
+await AuditLogger.logConfigChange({
+  performedBy: user,
+  setting: 'model',
+  oldValue: 'gpt-3.5-turbo',
+  newValue: 'gpt-4o'
+});
+
+// Export to JSON/CSV
+const jsonData = await AuditLogRepository.exportToJSON({ startDate, endDate });
+const csvData = await AuditLogRepository.exportToCSV({ category: 'AUTH' });
+```
+
+### Security & Compliance
+- ✅ No sensitive data logged (no message content, passwords, API keys)
+- ✅ GDPR compliant (right to access, deletion, data minimization)
+- ✅ Access control (ADMIN+ for viewing, OWNER for export)
+- ✅ Immutable audit trail (cannot modify logs)
+
+For detailed documentation, see `docs/AUDIT_LOGGING.md`.

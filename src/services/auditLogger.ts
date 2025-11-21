@@ -78,6 +78,8 @@ interface RateLimitViolationParams {
   userRole?: string;
   limitType: 'user' | 'global';
   currentRate?: number;
+  limit?: number;
+  consumed?: number;
 }
 
 interface ModerationFlagParams {
@@ -509,6 +511,8 @@ export class AuditLogger {
         metadata: {
           limitType: params.limitType,
           currentRate: params.currentRate,
+          limit: params.limit,
+          consumed: params.consumed,
         },
       });
 

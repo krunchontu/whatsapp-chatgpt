@@ -18,6 +18,7 @@ import { getRedisClient, isRedisAvailable } from '../lib/redis';
 import { createLogger } from '../lib/logger';
 import { RateLimitError } from '../lib/errors/RateLimitError';
 import { config } from '../config';
+import { AuditLogger } from '../services/auditLogger';
 
 const logger = createLogger('rateLimiter');
 
@@ -190,6 +191,14 @@ export async function checkRateLimit(message: Message): Promise<void> {
         retryAfter
       }, 'Per-user rate limit exceeded');
 
+      // Log rate limit violation to audit log
+      await AuditLogger.logRateLimitViolation({
+        phoneNumber: userKey,
+        limitType: 'user',
+        limit: config.rateLimitPerUser,
+        consumed: limiterRes.consumedPoints
+      });
+
       throw new RateLimitError(
         formatRateLimitError(limiterRes, 'user'),
         config.rateLimitPerUser,
@@ -222,6 +231,14 @@ export async function checkRateLimit(message: Message): Promise<void> {
         limit: config.rateLimitGlobal,
         retryAfter
       }, 'Global rate limit exceeded');
+
+      // Log rate limit violation to audit log
+      await AuditLogger.logRateLimitViolation({
+        phoneNumber: 'GLOBAL',
+        limitType: 'global',
+        limit: config.rateLimitGlobal,
+        consumed: limiterRes.consumedPoints
+      });
 
       throw new RateLimitError(
         formatRateLimitError(limiterRes, 'global'),

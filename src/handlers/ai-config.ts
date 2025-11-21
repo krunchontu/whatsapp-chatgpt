@@ -10,7 +10,11 @@ import { TTSModule } from "../commands/tts";
 import { StableDiffusionModule } from "../commands/stable-diffusion";
 import { TranslateModule } from "../commands/translate";
 import { UsageModule } from "../commands/usage";
+import { AuditModule } from "../commands/audit";
+import { RoleModule } from "../commands/role";
 import { createChildLogger } from "../lib/logger";
+import { AuditLogger } from "../services/auditLogger";
+import { UserRepository } from "../db/repositories/user.repository";
 
 import config from "../config";
 
@@ -26,7 +30,7 @@ let aiConfig: IAiConfig = {
 
 const initAiConfig = () => {
 	// Register commands
-	[ChatModule, GeneralModule, GptModule, TranscriptionModule, TTSModule, StableDiffusionModule, TranslateModule, UsageModule].forEach((module) => {
+	[ChatModule, GeneralModule, GptModule, TranscriptionModule, TTSModule, StableDiffusionModule, TranslateModule, UsageModule, AuditModule, RoleModule].forEach((module) => {
 		aiConfig.commandsMap[module.key] = module.register();
 	});
 
@@ -123,7 +127,19 @@ const handleMessageAIConfig = async (message: Message, prompt: any) => {
 			return;
 		}
 
+		const oldValue = aiConfig[target][type];
 		aiConfig[target][type] = value;
+
+		// Log configuration change to audit log
+		const user = await UserRepository.findByPhoneNumber(message.from);
+		if (user) {
+			await AuditLogger.logConfigChange({
+				performedBy: user,
+				setting: `${target}.${type}`,
+				oldValue,
+				newValue: value
+			});
+		}
 
 		message.reply("Successfully set " + target + " " + type + " to " + value);
 	} catch (error: any) {

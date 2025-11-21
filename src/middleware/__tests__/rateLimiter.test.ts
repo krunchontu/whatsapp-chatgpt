@@ -34,6 +34,19 @@ jest.mock('../../lib/logger', () => ({
     error: jest.fn(),
     debug: jest.fn(),
   })),
+  createChildLogger: jest.fn(() => ({
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  })),
+}));
+
+// Mock Audit Logger
+jest.mock('../../services/auditLogger', () => ({
+  AuditLogger: {
+    logRateLimitViolation: jest.fn().mockResolvedValue(undefined),
+  },
 }));
 
 // Helper to create mock message
