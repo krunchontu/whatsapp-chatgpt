@@ -148,7 +148,7 @@ const handleMessageAIConfig = async (message: Message, prompt: any) => {
 			chatId: message.from,
 			prompt
 		}, 'AI config command failed');
-		message.reply("An error occured, please contact the administrator. (" + error.message + ")");
+		message.reply("An error occurred, please contact the administrator. (" + error.message + ")");
 	}
 };
 
@@ -174,19 +174,4 @@ export function executeCommand(target: string, type: string, message: Message, v
 	}
 }
 
-const handleDeleteConversation = async (message: Message) => {
-	try {
-		// Clear conversation context
-		aiConfig.commandsMap.chat = ChatModule.register();
-		logger.info({ chatId: message.from }, 'Conversation context reset');
-		message.reply("Conversation context has been reset!");
-	} catch (error: any) {
-		logger.error({
-			err: error,
-			chatId: message.from
-		}, 'Failed to reset conversation context');
-		message.reply("An error occurred while resetting conversation. Please try again.");
-	}
-};
-
-export { aiConfig, handleMessageAIConfig, initAiConfig, handleDeleteConversation };
+export { aiConfig, handleMessageAIConfig, initAiConfig };

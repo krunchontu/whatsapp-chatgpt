@@ -1,7 +1,7 @@
 import { Message } from "whatsapp-web.js";
 import config from "../config";
 import { startsWithIgnoreCase } from "../utils";
-import { handleDeleteConversation } from "./ai-config";
+import { handleDeleteConversation } from "./gpt";
 import { handleMessageGPT } from "./gpt";
 import { handleMessageDALLE } from "./dalle";
 import { handleMessageAIConfig, executeCommand } from "./ai-config";

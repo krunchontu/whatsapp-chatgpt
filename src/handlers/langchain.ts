@@ -24,7 +24,7 @@ const handleMessageLangChain = async (message: Message, prompt: string) => {
 			chatId: message.from,
 			prompt
 		}, 'LangChain request failed');
-		message.reply("An error occured, please contact the administrator. (" + error.message + ")");
+		message.reply("An error occurred, please contact the administrator. (" + error.message + ")");
 	}
 };
 
