@@ -1,7 +1,7 @@
 import process from "process";
 
 import { TranscriptionMode } from "./types/transcription-mode";
-import { TTSMode } from "./types/tts-mode";
+// Removed for MVP (v2): import { TTSMode } from "./types/tts-mode";
 import { AWSPollyEngine } from "./types/aws-polly-engine";
 
 // Environment variables
@@ -53,9 +53,7 @@ interface IConfig {
 	prefixEnabled: boolean;
 	prefixSkippedForMe: boolean;
 	gptPrefix: string;
-	dallePrefix: string;
-	stableDiffusionPrefix: string;
-	langChainPrefix: string;
+	// Removed for MVP (v2 features): dallePrefix, stableDiffusionPrefix, langChainPrefix
 	resetPrefix: string;
 	aiConfigPrefix: string;
 
@@ -73,14 +71,10 @@ interface IConfig {
 	awsPollyVoiceId: string;
 	awsPollyEngine: AWSPollyEngine;
 
-	// Voice transcription & Text-to-Speech
-	speechServerUrl: string;
+	// Voice transcription (TTS removed for MVP - v2 feature)
 	whisperServerUrl: string;
 	openAIServerUrl: string;
 	whisperApiKey: string;
-	ttsEnabled: boolean;
-	ttsMode: TTSMode;
-	ttsTranscriptionResponse: boolean;
 	transcriptionEnabled: boolean;
 	transcriptionMode: TranscriptionMode;
 	transcriptionLanguage: string;
@@ -144,11 +138,9 @@ export const config: IConfig = {
 	prefixEnabled: getEnvBooleanWithDefault("PREFIX_ENABLED", true), // Default: true
 	prefixSkippedForMe: getEnvBooleanWithDefault("PREFIX_SKIPPED_FOR_ME", true), // Default: true
 	gptPrefix: process.env.GPT_PREFIX || "!gpt", // Default: !gpt
-	dallePrefix: process.env.DALLE_PREFIX || "!dalle", // Default: !dalle
-	stableDiffusionPrefix: process.env.STABLE_DIFFUSION_PREFIX || "!sd", // Default: !sd
 	resetPrefix: process.env.RESET_PREFIX || "!reset", // Default: !reset
 	aiConfigPrefix: process.env.AI_CONFIG_PREFIX || "!config", // Default: !config
-	langChainPrefix: process.env.LANGCHAIN_PREFIX || "!lang", // Default: !lang
+	// Removed for MVP (see MVP_PLAN.md): dallePrefix, stableDiffusionPrefix, langChainPrefix
 
 	// Groupchats
 	groupchatsEnabled: getEnvBooleanWithDefault("GROUPCHATS_ENABLED", false), // Default: false
@@ -164,16 +156,12 @@ export const config: IConfig = {
 	awsPollyVoiceId: process.env.AWS_POLLY_VOICE_ID || "", // Default: "Joanna"
 	awsPollyEngine: getEnvAWSPollyVoiceEngine(), // Default: standard
 
-	// Speech API, Default: https://speech-service.verlekar.com
-	speechServerUrl: process.env.SPEECH_API_URL || "https://speech-service.verlekar.com",
+	// Transcription API URLs
 	whisperServerUrl: process.env.WHISPER_API_URL || "https://transcribe.whisperapi.com",
 	openAIServerUrl: process.env.OPENAI_API_URL || "https://api.openai.com/v1/audio/transcriptions",
 	whisperApiKey: process.env.WHISPER_API_KEY || "", // Default: ""
 
-	// Text-to-Speech
-	ttsEnabled: getEnvBooleanWithDefault("TTS_ENABLED", false), // Default: false
-	ttsMode: getEnvTTSMode(), // Default: speech-api
-	ttsTranscriptionResponse: getEnvBooleanWithDefault("TTS_TRANSCRIPTION_RESPONSE_ENABLED", true), // Default: true
+	// TTS removed for MVP (v2 feature)
 
 	// Transcription
 	transcriptionEnabled: getEnvBooleanWithDefault("TRANSCRIPTION_ENABLED", false), // Default: false
@@ -239,18 +227,6 @@ function getEnvTranscriptionMode(): TranscriptionMode {
  * Get the tss mode from the environment variable
  * @returns The tts mode
  */
-function getEnvTTSMode(): TTSMode {
-	const envValue = process.env.TTS_MODE?.toLowerCase();
-	if (envValue == undefined || envValue == "") {
-		return TTSMode.SpeechAPI;
-	}
-
-	return envValue as TTSMode;
-}
-
-/**
- * Get the AWS Polly voice engine from the environment variable
- * @returns The voice engine
  */
 function getEnvAWSPollyVoiceEngine(): AWSPollyEngine {
 	const envValue = process.env.AWS_POLLY_VOICE_ENGINE?.toLowerCase();

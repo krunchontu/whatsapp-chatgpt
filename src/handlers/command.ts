@@ -3,9 +3,7 @@ import config from "../config";
 import { startsWithIgnoreCase } from "../utils";
 import { handleDeleteConversation } from "./gpt";
 import { handleMessageGPT } from "./gpt";
-import { handleMessageDALLE } from "./dalle";
 import { handleMessageAIConfig, executeCommand } from "./ai-config";
-import { handleMessageLangChain } from "./langchain";
 
 async function dispatchCommand(message: Message, messageString: string, selfNotedMessage: boolean): Promise<void> {
 	if (startsWithIgnoreCase(messageString, config.resetPrefix)) {
@@ -30,23 +28,8 @@ async function dispatchCommand(message: Message, messageString: string, selfNote
 		return;
 	}
 
-	if (startsWithIgnoreCase(messageString, config.langChainPrefix)) {
-		const prompt = messageString.substring(config.langChainPrefix.length + 1);
-		await handleMessageLangChain(message, prompt);
-		return;
-	}
-
-	if (startsWithIgnoreCase(messageString, config.dallePrefix)) {
-		const prompt = messageString.substring(config.dallePrefix.length + 1);
-		await handleMessageDALLE(message, prompt);
-		return;
-	}
-
-	if (startsWithIgnoreCase(messageString, config.stableDiffusionPrefix)) {
-		const prompt = messageString.substring(config.stableDiffusionPrefix.length + 1);
-		await executeCommand("sd", "generate", message, prompt);
-		return;
-	}
+	// Note: DALL-E, LangChain, and Stable Diffusion are deferred to v2 (see MVP_PLAN.md)
+	// Removed to reduce complexity and focus on core customer service features
 
 	if (!config.prefixEnabled || (config.prefixSkippedForMe && selfNotedMessage)) {
 		await handleMessageGPT(message, messageString);

@@ -5,7 +5,7 @@ import { getConfig } from "./ai-config";
 import { TranscriptionMode } from "../types/transcription-mode";
 import { transcribeAudioLocal } from "../providers/whisper-local";
 import { transcribeWhisperApi } from "../providers/whisper-api";
-import { transcribeRequest } from "../providers/speech";
+// Removed for MVP: import { transcribeRequest } from "../providers/speech";
 import { transcribeOpenAI } from "../providers/openai";
 import { queueTranscription } from "../queue/transcription.queue";
 import { logger } from "../lib/logger";
@@ -38,9 +38,7 @@ async function transcribeMediaSync(message: Message): Promise<string | null> {
 		case TranscriptionMode.WhisperAPI:
 			res = await transcribeWhisperApi(new Blob([mediaBuffer]));
 			break;
-		case TranscriptionMode.SpeechAPI:
-			res = await transcribeRequest(new Blob([mediaBuffer]));
-			break;
+		// Removed for MVP: case TranscriptionMode.SpeechAPI:
 		default:
 			cli.print(`[Transcription] Unsupported transcription mode: ${transcriptionMode}`);
 			return null;
