@@ -224,9 +224,8 @@ function getEnvTranscriptionMode(): TranscriptionMode {
 }
 
 /**
- * Get the tss mode from the environment variable
- * @returns The tts mode
- */
+ * Get the AWS Polly voice engine from the environment variable
+ * @returns The voice engine
  */
 function getEnvAWSPollyVoiceEngine(): AWSPollyEngine {
 	const envValue = process.env.AWS_POLLY_VOICE_ENGINE?.toLowerCase();
