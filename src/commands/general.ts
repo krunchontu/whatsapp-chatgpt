@@ -69,7 +69,12 @@ const settings: ICommandDefinition = {
 
 const whitelist: ICommandDefinition = {
 	help: "<value> - Set whitelisted phone numbers",
-	data: config.whitelistedPhoneNumbers,
+	get data() {
+		return config?.whitelistedPhoneNumbers || [];
+	},
+	set data(value: any) {
+		// Setter is needed for the execute function to work
+	},
 	execute: function (message: Message, value?: string) {
 		if (!value) {
 			message.reply(`Invalid value, please give a comma-separated list of phone numbers.`);
