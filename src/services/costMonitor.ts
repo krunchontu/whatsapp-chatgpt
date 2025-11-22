@@ -24,13 +24,75 @@ export class CostMonitor {
 	private static lastAlertDate: string | null = null;
 
 	/**
-	 * Check if daily cost threshold has been exceeded
+	 * Get current daily cost (for monitoring without alerting)
+	 *
+	 * @returns Current daily cost in USD
+	 */
+	static async getCurrentDailyCost(): Promise<number> {
+		try {
+			const dailyTotal = await UsageRepository.getGlobalDailyTotal();
+			return dailyTotal.totalCostUsd;
+		} catch (error) {
+			logger.error({ err: error }, 'Failed to get current daily cost');
+			return 0;
+		}
+	}
+
+	/**
+	 * Get user's daily cost
+	 *
+	 * @param userId - User ID
+	 * @returns User's daily cost in USD
+	 */
+	static async getUserDailyCost(userId: string): Promise<number> {
+		try {
+			const dailyTotal = await UsageRepository.getDailyTotal(userId);
+			return dailyTotal.totalCostUsd;
+		} catch (error) {
+			logger.error({ err: error, userId }, 'Failed to get user daily cost');
+			return 0;
+		}
+	}
+
+	/**
+	 * Check if user's daily cost threshold has been exceeded
+	 * Overload for test compatibility
+	 *
+	 * @param userIdOrConfig - User ID or alert config
+	 * @param threshold - Cost threshold in USD (optional if first param is config)
+	 * @returns True if threshold exceeded, false otherwise
+	 */
+	static async checkDailyThreshold(
+		userIdOrConfig: string | CostAlertConfig,
+		threshold?: number
+	): Promise<boolean> {
+		// If first argument is a string (userId), check user-specific threshold
+		if (typeof userIdOrConfig === 'string') {
+			const userId = userIdOrConfig;
+			const thresholdUsd = threshold ?? 50;
+
+			try {
+				const dailyTotal = await UsageRepository.getDailyTotal(userId);
+				return dailyTotal.totalCostUsd >= thresholdUsd;
+			} catch (error) {
+				logger.error({ err: error, userId }, 'Failed to check user cost threshold');
+				return false;
+			}
+		}
+
+		// Otherwise, use the original global checking logic
+		const alertConfig = userIdOrConfig as CostAlertConfig;
+		return this.checkGlobalDailyThreshold(alertConfig);
+	}
+
+	/**
+	 * Check if global daily cost threshold has been exceeded (original implementation)
 	 * Triggers alert once per day if threshold is exceeded
 	 *
 	 * @param alertConfig - Alert configuration (threshold and enabled flag)
 	 * @returns True if threshold exceeded, false otherwise
 	 */
-	static async checkDailyThreshold(
+	private static async checkGlobalDailyThreshold(
 		alertConfig: CostAlertConfig = {
 			dailyThresholdUsd: config.costAlertThresholdUsd || 50,
 			enabled: config.costAlertEnabled ?? true
@@ -65,37 +127,6 @@ export class CostMonitor {
 		} catch (error) {
 			logger.error({ err: error }, 'Failed to check cost threshold');
 			return false;
-		}
-	}
-
-	/**
-	 * Get current daily cost (for monitoring without alerting)
-	 *
-	 * @returns Current daily cost in USD
-	 */
-	static async getCurrentDailyCost(): Promise<number> {
-		try {
-			const dailyTotal = await UsageRepository.getGlobalDailyTotal();
-			return dailyTotal.totalCostUsd;
-		} catch (error) {
-			logger.error({ err: error }, 'Failed to get current daily cost');
-			return 0;
-		}
-	}
-
-	/**
-	 * Get user's daily cost
-	 *
-	 * @param userId - User ID
-	 * @returns User's daily cost in USD
-	 */
-	static async getUserDailyCost(userId: string): Promise<number> {
-		try {
-			const dailyTotal = await UsageRepository.getDailyTotal(userId);
-			return dailyTotal.totalCostUsd;
-		} catch (error) {
-			logger.error({ err: error, userId }, 'Failed to get user daily cost');
-			return 0;
 		}
 	}
 

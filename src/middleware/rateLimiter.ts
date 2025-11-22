@@ -15,12 +15,12 @@
 import { RateLimiterRedis, RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
 import type { Message } from 'whatsapp-web.js';
 import { getRedisClient, isRedisAvailable } from '../lib/redis';
-import { createLogger } from '../lib/logger';
+import { createChildLogger } from '../lib/logger';
 import { RateLimitError } from '../lib/errors/RateLimitError';
 import { config } from '../config';
 import { AuditLogger } from '../services/auditLogger';
 
-const logger = createLogger('rateLimiter');
+const logger = createChildLogger({ module: 'middleware:rateLimiter' });
 
 // Rate limiter instances
 let perUserLimiter: RateLimiterRedis | RateLimiterMemory | null = null;

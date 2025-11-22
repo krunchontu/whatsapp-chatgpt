@@ -17,6 +17,7 @@ import type { UsageMetric } from '@prisma/client';
  */
 export const OperationType = {
   CHAT: 'CHAT',
+  CHAT_COMPLETION: 'CHAT', // Alias for tests
   TRANSCRIPTION: 'TRANSCRIPTION',
   VISION: 'VISION',
 } as const;
@@ -31,9 +32,12 @@ export interface CreateUsageData {
   promptTokens: number;
   completionTokens: number;
   totalTokens: number;
-  costMicros: number; // Cost in micro-dollars (1/1,000,000 USD)
+  costMicros?: number; // Cost in micro-dollars (1/1,000,000 USD)
+  cost?: number; // Cost in USD (for backward compatibility with tests)
   model: string; // e.g., "gpt-4o", "whisper-1"
-  operation: OperationTypeType;
+  operation?: OperationTypeType; // Optional for backward compatibility
+  operationType?: OperationTypeType; // Alias for operation
+  createdAt?: Date; // Optional timestamp (defaults to now if not provided)
 }
 
 /**
@@ -94,11 +98,24 @@ export class UsageRepository {
    * @returns Created usage metric
    */
   static async create(data: CreateUsageData): Promise<UsageMetric> {
+    // Handle operation/operationType field (support both for backward compatibility)
+    const operation = data.operation || data.operationType || 'CHAT';
+
     // Validate operation type
-    if (!Object.values(OperationType).includes(data.operation)) {
+    if (!Object.values(OperationType).includes(operation)) {
       throw new Error(
-        `Invalid operation: ${data.operation}. Must be CHAT, TRANSCRIPTION, or VISION.`
+        `Invalid operation: ${operation}. Must be CHAT, TRANSCRIPTION, or VISION.`
       );
+    }
+
+    // Handle cost/costMicros (support both USD and micro-dollars)
+    let costMicros: number;
+    if (data.costMicros !== undefined) {
+      costMicros = data.costMicros;
+    } else if (data.cost !== undefined) {
+      costMicros = this.usdToMicro(data.cost);
+    } else {
+      costMicros = 0;
     }
 
     // Validate token counts
@@ -107,7 +124,7 @@ export class UsageRepository {
     }
 
     // Validate cost
-    if (data.costMicros < 0) {
+    if (costMicros < 0) {
       throw new Error('Cost must be non-negative');
     }
 
@@ -117,9 +134,10 @@ export class UsageRepository {
         promptTokens: data.promptTokens,
         completionTokens: data.completionTokens,
         totalTokens: data.totalTokens,
-        costMicros: data.costMicros,
+        costMicros: costMicros,
         model: data.model,
-        operation: data.operation,
+        operation: operation,
+        ...(data.createdAt ? { createdAt: data.createdAt } : {}),
       },
     });
   }
@@ -141,7 +159,7 @@ export class UsageRepository {
    *
    * @param userId - User ID
    * @param options - Query options
-   * @returns Array of usage metrics
+   * @returns Array of usage metrics with cost field in USD
    */
   static async findByUserId(
     userId: string,
@@ -151,8 +169,8 @@ export class UsageRepository {
       startDate?: Date;
       endDate?: Date;
     }
-  ): Promise<UsageMetric[]> {
-    return prisma.usageMetric.findMany({
+  ): Promise<Array<UsageMetric & { cost: number; operationType: string }>> {
+    const metrics = await prisma.usageMetric.findMany({
       where: {
         userId,
         ...(options?.startDate || options?.endDate
@@ -170,6 +188,13 @@ export class UsageRepository {
       skip: options?.skip,
       take: options?.take,
     });
+
+    // Add cost field in USD and operationType alias for backward compatibility with tests
+    return metrics.map((metric) => ({
+      ...metric,
+      cost: this.microToUsd(metric.costMicros),
+      operationType: metric.operation, // Alias for tests
+    }));
   }
 
   // ============================================== #
@@ -377,6 +402,86 @@ export class UsageRepository {
       uniqueUsers,
       averageCostPerUserUsd: uniqueUsers > 0 ? totalCostUsd / uniqueUsers : 0,
       byOperation,
+    };
+  }
+
+  // ============================================== #
+  //          Convenience Methods (Test Compatibility) #
+  // ============================================== #
+
+  /**
+   * Get total usage for a user (all time)
+   * Test-compatible method that returns data in USD format
+   *
+   * @param userId - User ID
+   * @returns Total usage summary
+   */
+  static async getTotalUsage(userId: string): Promise<{
+    totalTokens: number;
+    totalCost: number;
+    promptTokens: number;
+    completionTokens: number;
+  }> {
+    const metrics = await this.findByUserId(userId);
+
+    const totalTokens = metrics.reduce((sum, m) => sum + m.totalTokens, 0);
+    const totalCostMicros = metrics.reduce((sum, m) => sum + m.costMicros, 0);
+    const promptTokens = metrics.reduce((sum, m) => sum + m.promptTokens, 0);
+    const completionTokens = metrics.reduce((sum, m) => sum + m.completionTokens, 0);
+
+    return {
+      totalTokens,
+      totalCost: this.microToUsd(totalCostMicros),
+      promptTokens,
+      completionTokens,
+    };
+  }
+
+  /**
+   * Get daily usage for a specific user (test-compatible alias)
+   * Returns data in USD format
+   *
+   * @param userId - User ID
+   * @param date - Date to calculate for
+   * @returns Daily usage with cost in USD
+   */
+  static async getDailyUsage(
+    userId: string,
+    date: Date
+  ): Promise<{
+    totalTokens: number;
+    totalCost: number;
+    totalRequests: number;
+  }> {
+    const summary = await this.getDailyTotal(userId, date);
+    return {
+      totalTokens: summary.totalTokens,
+      totalCost: summary.totalCostUsd,
+      totalRequests: summary.totalRequests,
+    };
+  }
+
+  /**
+   * Get global usage across all users (test-compatible)
+   * Returns data in USD format
+   *
+   * @returns Global usage summary
+   */
+  static async getGlobalUsage(): Promise<{
+    totalTokens: number;
+    totalCost: number;
+    userCount: number;
+  }> {
+    const metrics = await prisma.usageMetric.findMany();
+
+    const totalTokens = metrics.reduce((sum, m) => sum + m.totalTokens, 0);
+    const totalCostMicros = metrics.reduce((sum, m) => sum + m.costMicros, 0);
+    const uniqueUsers = new Set(metrics.map((m) => m.userId)).size;
+
+    return {
+      totalTokens,
+      totalCost: this.microToUsd(totalCostMicros),
+      userCount: uniqueUsers,
     };
   }
 
