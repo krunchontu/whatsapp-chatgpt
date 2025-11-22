@@ -149,4 +149,16 @@ async function executeModeration(userInput: string, llmResponse?: string, phoneN
 	}
 }
 
-export { executeModeration, checkModerationFlag, customModeration };
+/**
+ * Moderate incoming user prompt for inappropriate content
+ * Wrapper for executeModeration to match expected interface
+ *
+ * @param prompt - User's input prompt
+ * @param phoneNumber - User's phone number for audit logging
+ * @returns Promise<boolean> - true if content is safe, false if flagged
+ */
+async function moderateIncomingPrompt(prompt: string, phoneNumber?: string): Promise<boolean> {
+	return await executeModeration(prompt, undefined, phoneNumber);
+}
+
+export { executeModeration, checkModerationFlag, customModeration, moderateIncomingPrompt };

@@ -1,13 +1,11 @@
 import { Message } from "whatsapp-web.js";
 import { aiConfigTarget, aiConfigTypes, aiConfigValues, IAiConfig } from "../types/ai-config";
-import { dalleImageSize } from "../types/dalle-config";
+// Removed for MVP (v2): dalleImageSize, TTSModule, StableDiffusionModule
 import { GeneralModule } from "../commands/general";
 import { ChatModule } from "../commands/chat";
 import { ICommandDefinition } from "../types/commands";
 import { GptModule } from "../commands/gpt";
 import { TranscriptionModule } from "../commands/transcription";
-import { TTSModule } from "../commands/tts";
-import { StableDiffusionModule } from "../commands/stable-diffusion";
 import { TranslateModule } from "../commands/translate";
 import { UsageModule } from "../commands/usage";
 import { AuditModule } from "../commands/audit";
@@ -21,25 +19,15 @@ import config from "../config";
 const logger = createChildLogger({ module: 'handlers:ai-config' });
 
 let aiConfig: IAiConfig = {
-	dalle: {
-		size: dalleImageSize["1024x1024"]
-	},
-	// chatgpt: {}
+	// Removed for MVP (v2): dalle config
 	commandsMap: {}
 };
 
 const initAiConfig = () => {
-	// Register commands
-	[ChatModule, GeneralModule, GptModule, TranscriptionModule, TTSModule, StableDiffusionModule, TranslateModule, UsageModule, AuditModule, RoleModule].forEach((module) => {
+	// Register commands (removed TTSModule, StableDiffusionModule for MVP - v2 features)
+	[ChatModule, GeneralModule, GptModule, TranscriptionModule, TranslateModule, UsageModule, AuditModule, RoleModule].forEach((module) => {
 		aiConfig.commandsMap[module.key] = module.register();
 	});
-
-	// Ensure size compatibility based on the model
-	if (aiConfig.dalle.model === "dall-e-3") {
-		aiConfig.dalle.size = dalleImageSize["1024x1024"];
-	} else if (aiConfig.dalle.model === "dall-e-2") {
-		aiConfig.dalle.size = dalleImageSize["512x512"];
-	}
 };
 
 const handleMessageAIConfig = async (message: Message, prompt: any) => {
@@ -148,7 +136,7 @@ const handleMessageAIConfig = async (message: Message, prompt: any) => {
 			chatId: message.from,
 			prompt
 		}, 'AI config command failed');
-		message.reply("An error occured, please contact the administrator. (" + error.message + ")");
+		message.reply("An error occurred, please contact the administrator. (" + error.message + ")");
 	}
 };
 
@@ -174,19 +162,4 @@ export function executeCommand(target: string, type: string, message: Message, v
 	}
 }
 
-const handleDeleteConversation = async (message: Message) => {
-	try {
-		// Clear conversation context
-		aiConfig.commandsMap.chat = ChatModule.register();
-		logger.info({ chatId: message.from }, 'Conversation context reset');
-		message.reply("Conversation context has been reset!");
-	} catch (error: any) {
-		logger.error({
-			err: error,
-			chatId: message.from
-		}, 'Failed to reset conversation context');
-		message.reply("An error occurred while resetting conversation. Please try again.");
-	}
-};
-
-export { aiConfig, handleMessageAIConfig, initAiConfig, handleDeleteConversation };
+export { aiConfig, handleMessageAIConfig, initAiConfig };

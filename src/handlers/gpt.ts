@@ -14,10 +14,7 @@ import { ConversationRepository } from "../db/repositories/conversation.reposito
 
 const logger = createChildLogger({ module: 'handlers:gpt' });
 
-// TTS
-import { ttsRequest as speechTTSRequest } from "../providers/speech";
-import { ttsRequest as awsTTSRequest } from "../providers/aws";
-import { TTSMode } from "../types/tts-mode";
+// TTS removed for MVP (v2 feature - see MVP_PLAN.md)
 
 // Moderation
 import { moderateIncomingPrompt } from "./moderation";
@@ -306,13 +303,7 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 
 		cli.print(`[GPT] Answer to ${message.from}: ${result.content}  | OpenAI request took ${end}ms)`);
 
-		// TTS reply (Default: disabled)
-		if (getConfig("tts", "enabled")) {
-			logger.debug({ chatId: message.from }, 'Sending TTS reply');
-			sendVoiceMessageReply(message, result.content);
-			message.reply(result.content);
-			return;
-		}
+		// TTS removed for MVP (v2 feature)
 
 		// Default: Text reply
 		logger.debug({ chatId: message.from }, 'Sending text reply');
@@ -349,66 +340,6 @@ const handleMessageGPT = async (message: Message, prompt: string) => {
 	}
 };
 
-async function sendVoiceMessageReply(message: Message, gptTextResponse: string) {
-	var logTAG = "[TTS]";
-	var ttsRequest = async function (): Promise<Buffer | null> {
-		return await speechTTSRequest(gptTextResponse);
-	};
-
-	switch (config.ttsMode) {
-		case TTSMode.SpeechAPI:
-			logTAG = "[SpeechAPI]";
-			ttsRequest = async function (): Promise<Buffer | null> {
-				return await speechTTSRequest(gptTextResponse);
-			};
-			break;
-
-		case TTSMode.AWSPolly:
-			logTAG = "[AWSPolly]";
-			ttsRequest = async function (): Promise<Buffer | null> {
-				return await awsTTSRequest(gptTextResponse);
-			};
-			break;
-
-		default:
-			logTAG = "[SpeechAPI]";
-			ttsRequest = async function (): Promise<Buffer | null> {
-				return await speechTTSRequest(gptTextResponse);
-			};
-			break;
-	}
-
-	// Get audio buffer
-	cli.print(`${logTAG} Generating audio from GPT response "${gptTextResponse}"...`);
-	const audioBuffer = await ttsRequest();
-
-	// Check if audio buffer is valid
-	if (audioBuffer == null || audioBuffer.length == 0) {
-		message.reply(`${logTAG} couldn't generate audio, please contact the administrator.`);
-		return;
-	}
-
-	cli.print(`${logTAG} Audio generated!`);
-
-	// Get temp folder and file path
-	const tempFolder = os.tmpdir();
-	const tempFilePath = path.join(tempFolder, randomUUID() + ".opus");
-
-	// Save buffer to temp file
-	fs.writeFileSync(tempFilePath, audioBuffer);
-
-	// Send audio with metadata and caption
-	const messageMedia = new MessageMedia(
-		"audio/ogg; codecs=opus",
-		audioBuffer.toString("base64"),
-		`audio_${Date.now()}.opus`, // filename
-		audioBuffer.length // filesize
-	);
-	message.reply(messageMedia, { caption: "Generated audio response" });
-
-	// Delete temp file
-	fs.unlinkSync(tempFilePath);
-}
 
 async function sendLocalFileMedia(message: Message, filePath: string) {
 	try {

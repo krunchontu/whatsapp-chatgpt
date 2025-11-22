@@ -150,7 +150,7 @@ describe('Audit Commands', () => {
 
       // Verify audit logging
       expect(AuditLogger.logAuditLogViewed).toHaveBeenCalledWith({
-        user: mockAdmin,
+        performedBy: mockAdmin,
         filters: expect.objectContaining({
           startDate: expect.any(Date),
           limit: 20,
@@ -298,7 +298,7 @@ describe('Audit Commands', () => {
 
       // Verify audit logging
       expect(AuditLogger.logAuditLogViewed).toHaveBeenCalledWith({
-        user: mockAdmin,
+        performedBy: mockAdmin,
         filters: { phoneNumber: targetPhone, limit: 20 },
       });
 
@@ -524,10 +524,9 @@ describe('Audit Commands', () => {
 
       // Verify audit logging
       expect(AuditLogger.logAuditLogExported).toHaveBeenCalledWith({
-        user: mockOwner,
+        performedBy: mockOwner,
         format: 'JSON',
         recordCount: 100,
-        dateRange: '30 days',
       });
 
       // Verify response shows record count
