@@ -324,6 +324,25 @@ export class ConversationRepository {
     }));
   }
 
+  /**
+   * Get conversation history (alias for getMessages)
+   * Test-compatible method
+   *
+   * @param userId - User ID
+   * @param limit - Maximum number of messages to return (optional)
+   * @returns Array of chat messages
+   */
+  static async getHistory(
+    userId: string,
+    limit?: number
+  ): Promise<ChatMessage[]> {
+    const messages = await this.getMessages(userId);
+    if (limit) {
+      return messages.slice(-limit);
+    }
+    return messages;
+  }
+
   // ============================================== #
   //          TTL & Cleanup                         #
   // ============================================== #
