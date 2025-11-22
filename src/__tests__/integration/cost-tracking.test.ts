@@ -101,9 +101,11 @@ describe('Integration: Cost Tracking Accuracy', () => {
       (chatCompletion as jest.Mock).mockResolvedValue({
         content: 'Paris is the capital of France.',
         model: 'gpt-4o',
-        promptTokens: 100, // $0.00025 (100 * 0.0025 / 1000)
-        completionTokens: 50, // $0.0005 (50 * 0.010 / 1000)
-        totalTokens: 150,
+        usage: {
+          promptTokens: 100, // $0.00025 (100 * 0.0025 / 1000)
+          completionTokens: 50, // $0.0005 (50 * 0.010 / 1000)
+          totalTokens: 150,
+        },
       });
 
       const message = createMockMessage(phoneNumber, 'What is the capital of France?');
@@ -140,9 +142,11 @@ describe('Integration: Cost Tracking Accuracy', () => {
       (chatCompletion as jest.Mock).mockResolvedValue({
         content: 'Response',
         model: 'gpt-3.5-turbo',
-        promptTokens: 200, // $0.0001 (200 * 0.0005 / 1000)
-        completionTokens: 100, // $0.00015 (100 * 0.0015 / 1000)
-        totalTokens: 300,
+        usage: {
+          promptTokens: 200, // $0.0001 (200 * 0.0005 / 1000)
+          completionTokens: 100, // $0.00015 (100 * 0.0015 / 1000)
+          totalTokens: 300,
+        },
       });
 
       const message = createMockMessage(phoneNumber, 'Test prompt');
@@ -167,9 +171,9 @@ describe('Integration: Cost Tracking Accuracy', () => {
 
       // Mock 3 GPT responses
       const responses = [
-        { content: 'R1', model: 'gpt-4o', promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-        { content: 'R2', model: 'gpt-4o', promptTokens: 150, completionTokens: 75, totalTokens: 225 },
-        { content: 'R3', model: 'gpt-4o', promptTokens: 200, completionTokens: 100, totalTokens: 300 },
+        { content: 'R1', model: 'gpt-4o', usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 } },
+        { content: 'R2', model: 'gpt-4o', usage: { promptTokens: 150, completionTokens: 75, totalTokens: 225 } },
+        { content: 'R3', model: 'gpt-4o', usage: { promptTokens: 200, completionTokens: 100, totalTokens: 300 } },
       ];
 
       let callCount = 0;
@@ -215,9 +219,11 @@ describe('Integration: Cost Tracking Accuracy', () => {
       (chatCompletion as jest.Mock).mockResolvedValue({
         content: 'Response',
         model: 'gpt-4o',
-        promptTokens: 100,
-        completionTokens: 50,
-        totalTokens: 150,
+        usage: {
+          promptTokens: 100,
+          completionTokens: 50,
+          totalTokens: 150,
+        },
       });
 
       const message = createMockMessage(phoneNumber, 'Test');
@@ -300,14 +306,8 @@ describe('Integration: Cost Tracking Accuracy', () => {
         role: UserRole.USER,
       });
 
-      // Create metrics totaling $55 (threshold is typically $50/day)
-      const highCostRequests = [
-        { promptTokens: 10000, completionTokens: 5000, totalTokens: 15000 }, // ~$0.075
-        { promptTokens: 20000, completionTokens: 10000, totalTokens: 30000 }, // ~$0.15
-        // Repeat to exceed $50 threshold
-      ];
-
-      // Create enough usage to exceed threshold
+      // Create metrics totaling $60 (threshold is typically $50/day)
+      // With 400 requests at $0.15 each = $60.00
       for (let i = 0; i < 400; i++) {
         await UsageRepository.create({
           userId: user.id,
@@ -316,7 +316,7 @@ describe('Integration: Cost Tracking Accuracy', () => {
           promptTokens: 1000,
           completionTokens: 500,
           totalTokens: 1500,
-          cost: 0.01, // $0.01 per request
+          cost: 0.15, // $0.15 per request
           createdAt: new Date(), // Today
         });
       }
@@ -425,9 +425,11 @@ describe('Integration: Cost Tracking Accuracy', () => {
       (chatCompletion as jest.Mock).mockResolvedValue({
         content: 'Cached response',
         model: 'gpt-4o',
-        promptTokens: 0,
-        completionTokens: 0,
-        totalTokens: 0,
+        usage: {
+          promptTokens: 0,
+          completionTokens: 0,
+          totalTokens: 0,
+        },
       });
 
       const message = createMockMessage(phoneNumber, 'Test');
@@ -453,7 +455,11 @@ describe('Integration: Cost Tracking Accuracy', () => {
       (chatCompletion as jest.Mock).mockResolvedValue({
         content: 'Response',
         model: 'gpt-4o',
-        // Missing: promptTokens, completionTokens, totalTokens
+        usage: {
+          promptTokens: 0,
+          completionTokens: 0,
+          totalTokens: 0,
+        },
       });
 
       const message = createMockMessage(phoneNumber, 'Test');
@@ -499,8 +505,11 @@ describe('Integration: Cost Tracking Accuracy', () => {
       });
 
       const today = new Date();
+      today.setHours(12, 0, 0, 0); // Set to noon today
+
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(12, 0, 0, 0); // Set to noon yesterday
 
       // Create usage from yesterday
       await UsageRepository.create({
