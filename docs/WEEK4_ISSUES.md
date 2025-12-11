@@ -1,7 +1,7 @@
 # Week 4: Issues & Resolutions Log
 
-**Date:** 2025-11-22
-**Branch:** `claude/review-week-3-01Jv551K25sAxfHoUbdJYtSm`
+**Date:** 2025-12-11 (Updated)
+**Branch:** `claude/review-app-against-mvp-01Ud8CYEA5Q9QzaB5NxRaVKm`
 
 ---
 
@@ -9,9 +9,14 @@
 
 This document tracks all issues discovered during Week 4 MVP testing and cleanup, along with their resolutions.
 
-**Total Issues:** 6
-**Resolved:** 6 (100%)
-**Remaining:** 0
+**Total Issues:** 10
+**Resolved:** 6 (60%)
+**Remaining:** 4 (NEW - discovered 2025-12-11)
+
+### Current Status
+- **Test Pass Rate:** 96.8% (428/442 tests passing)
+- **Critical Blockers:** 2 (Health Check + Config Import)
+- **Production Ready:** ⚠️ NOT YET - requires critical fixes
 
 ---
 
@@ -374,8 +379,178 @@ Keeping unused code "for later" creates:
 ---
 
 **Document Owner:** Development Team
-**Last Updated:** 2025-11-22
-**Next Review:** End of Week 4
+**Last Updated:** 2025-12-11
+**Next Review:** Before Production Deployment
+
+---
+
+## 🔴 NEW: Critical Issues Discovered (2025-12-11)
+
+**Discovered By:** Comprehensive MVP Review
+**Status:** UNRESOLVED - Requires immediate attention
+
+### Issue #7: Missing Health Check Endpoint (CRITICAL)
+
+**Severity:** 🔴 CRITICAL (Docker deployment will fail)
+**Status:** UNRESOLVED
+**Discovered:** 2025-12-11
+
+#### Description
+Docker expects a `/healthz` endpoint on port 3000, but no HTTP server is implemented. The application only runs as a WhatsApp client without any HTTP endpoints.
+
+#### Impact
+- Docker health check will always fail (`curl -f http://localhost:3000/healthz` returns connection refused)
+- Container will be marked unhealthy and potentially restarted in loops
+- Kubernetes/orchestration readiness probes won't work
+- No way to monitor bot availability without WhatsApp connection
+
+#### Evidence
+- `docker-compose.yml:11`: `test: ["CMD", "curl", "-f", "http://localhost:3000/healthz"]`
+- `src/index.ts`: No Express server, no port listening, only WhatsApp client
+- `package.json`: Express is in dependencies but never used
+- 50+ documentation references to `/healthz` endpoint that doesn't exist
+
+#### Root Cause
+Health check endpoint was planned but never implemented. Documentation assumes it exists.
+
+#### Recommended Fix
+```typescript
+// Add to src/index.ts or create src/api/health-server.ts
+import http from 'http';
+
+const healthServer = http.createServer((req, res) => {
+  if (req.url === '/healthz') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }));
+  } else {
+    res.writeHead(404);
+    res.end();
+  }
+});
+
+healthServer.listen(3000, () => {
+  appLogger.info({ port: 3000 }, 'Health check server listening');
+});
+```
+
+#### Time to Fix
+~30 minutes
+
+---
+
+### Issue #8: Missing Config Import in index.ts (HIGH)
+
+**Severity:** 🟠 HIGH (Runtime error)
+**Status:** UNRESOLVED
+**Discovered:** 2025-12-11
+
+#### Description
+`src/index.ts:123` references `config.redis.enabled` but `config` is never imported in the file.
+
+#### Impact
+- Runtime error: `ReferenceError: config is not defined`
+- Application will crash on startup when Redis check is reached
+- Prevents application from running at all
+
+#### Evidence
+```typescript
+// Line 123 of src/index.ts
+if (config.redis.enabled) {  // ❌ config is not imported
+```
+
+#### Root Cause
+Config import was likely removed during refactoring but the usage remained.
+
+#### Recommended Fix
+Add import at top of `src/index.ts`:
+```typescript
+import config from "./config";
+```
+
+#### Time to Fix
+~5 minutes
+
+---
+
+### Issue #9: Missing Speech Provider (MEDIUM)
+
+**Severity:** 🟡 MEDIUM (Crashes if SpeechAPI mode used)
+**Status:** UNRESOLVED
+**Discovered:** 2025-12-11
+
+#### Description
+`src/queue/workers/transcription.worker.ts:17` imports `transcribeRequest` from `../../providers/speech` but the file doesn't exist.
+
+#### Impact
+- TypeScript compilation error (if strict)
+- Runtime crash if `TranscriptionMode.SpeechAPI` is selected
+- Users cannot use SpeechAPI transcription mode
+
+#### Evidence
+```typescript
+// Line 17 of transcription.worker.ts
+import { transcribeRequest } from '../../providers/speech';  // ❌ File doesn't exist
+
+// Line 62-63
+case TranscriptionMode.SpeechAPI:
+  result = await transcribeRequest(new Blob([mediaBuffer]));  // Will crash
+```
+
+#### Root Cause
+Provider was removed but enum and import remain.
+
+#### Recommended Fix
+Either:
+1. Remove SpeechAPI mode from `TranscriptionMode` enum and worker
+2. Or implement the missing `src/providers/speech.ts` provider
+
+#### Time to Fix
+Option 1: ~15 minutes
+Option 2: ~1-2 hours (requires SpeechAPI integration)
+
+---
+
+### Issue #10: Unused LangChain Browser Agent (LOW)
+
+**Severity:** 🟢 LOW (Technical debt)
+**Status:** UNRESOLVED
+**Discovered:** 2025-12-11
+
+#### Description
+`src/providers/browser-agent.ts` contains a full LangChain implementation with SerpAPI tools, but it's never called from any handler.
+
+#### Impact
+- Unused code adds complexity
+- Dependencies (@langchain/*) in package.json but unused
+- Increases bundle size and attack surface
+
+#### Evidence
+- File exists: `src/providers/browser-agent.ts` (1294 bytes)
+- No imports of this file anywhere in codebase
+- LangChain packages in dependencies
+
+#### Recommended Fix
+1. Remove `src/providers/browser-agent.ts`
+2. Remove unused @langchain/* dependencies from package.json (if any)
+3. Document as v2 feature in MVP_PLAN.md
+
+#### Time to Fix
+~15 minutes
+
+---
+
+### Summary of New Issues
+
+| Issue | Severity | Status | Time to Fix |
+|-------|----------|--------|-------------|
+| #7 Missing Health Check | CRITICAL | UNRESOLVED | 30 min |
+| #8 Missing Config Import | HIGH | UNRESOLVED | 5 min |
+| #9 Missing Speech Provider | MEDIUM | UNRESOLVED | 15 min |
+| #10 Unused LangChain Code | LOW | UNRESOLVED | 15 min |
+
+**Total Estimated Fix Time:** ~1 hour 5 minutes
+
+**Blocking for Production:** Issues #7 and #8 must be fixed before Docker deployment.
 
 ---
 
