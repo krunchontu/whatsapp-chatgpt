@@ -3,6 +3,7 @@ process.removeAllListeners("warning");
 
 import { Client, Events, LocalAuth } from "whatsapp-web.js";
 import { existsSync, mkdirSync } from "fs";
+import http from "http";
 
 // Constants
 import constants from "./constants";
@@ -11,6 +12,7 @@ import constants from "./constants";
 import * as cli from "./cli/ui";
 
 // Config
+import config from "./config";
 import { puppeteerArgs } from "./config/puppeteer";
 
 // Logging and error handling
@@ -46,6 +48,44 @@ const start = async () => {
 
 	// Initialize Sentry error tracking (production only)
 	initSentry();
+
+	// Start health check HTTP server (required for Docker health checks)
+	const healthServer = http.createServer((req, res) => {
+		if (req.url === '/healthz' || req.url === '/health') {
+			res.writeHead(200, { 'Content-Type': 'application/json' });
+			res.end(JSON.stringify({
+				status: 'ok',
+				timestamp: new Date().toISOString(),
+				uptime: process.uptime(),
+				botReady: botReadyTimestamp !== null
+			}));
+		} else if (req.url === '/readyz') {
+			// Readiness check - only return 200 if bot is ready
+			if (botReadyTimestamp !== null) {
+				res.writeHead(200, { 'Content-Type': 'application/json' });
+				res.end(JSON.stringify({
+					status: 'ready',
+					timestamp: new Date().toISOString(),
+					botReadySince: botReadyTimestamp.toISOString()
+				}));
+			} else {
+				res.writeHead(503, { 'Content-Type': 'application/json' });
+				res.end(JSON.stringify({
+					status: 'not_ready',
+					timestamp: new Date().toISOString(),
+					message: 'WhatsApp client not yet connected'
+				}));
+			}
+		} else {
+			res.writeHead(404);
+			res.end();
+		}
+	});
+
+	const healthPort = parseInt(process.env.HEALTH_PORT || '3000', 10);
+	healthServer.listen(healthPort, () => {
+		appLogger.info({ port: healthPort }, 'Health check server listening');
+	});
 
 	// Initialize Redis (for rate limiting and job queues)
 	appLogger.debug('Initializing Redis client');
