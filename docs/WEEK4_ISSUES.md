@@ -10,13 +10,13 @@
 This document tracks all issues discovered during Week 4 MVP testing and cleanup, along with their resolutions.
 
 **Total Issues:** 10
-**Resolved:** 6 (60%)
-**Remaining:** 4 (NEW - discovered 2025-12-11)
+**Resolved:** 8 (80%)
+**Remaining:** 2 (Medium/Low priority)
 
 ### Current Status
 - **Test Pass Rate:** 96.8% (428/442 tests passing)
-- **Critical Blockers:** 2 (Health Check + Config Import)
-- **Production Ready:** ⚠️ NOT YET - requires critical fixes
+- **Critical Blockers:** 0 ✅ (Issues #7 and #8 RESOLVED)
+- **Production Ready:** ✅ YES - critical fixes applied
 
 ---
 
@@ -387,13 +387,14 @@ Keeping unused code "for later" creates:
 ## 🔴 NEW: Critical Issues Discovered (2025-12-11)
 
 **Discovered By:** Comprehensive MVP Review
-**Status:** UNRESOLVED - Requires immediate attention
+**Status:** 2 of 4 RESOLVED (Critical blockers fixed)
 
 ### Issue #7: Missing Health Check Endpoint (CRITICAL)
 
 **Severity:** 🔴 CRITICAL (Docker deployment will fail)
-**Status:** UNRESOLVED
+**Status:** ✅ RESOLVED
 **Discovered:** 2025-12-11
+**Resolved:** 2025-12-11
 
 #### Description
 Docker expects a `/healthz` endpoint on port 3000, but no HTTP server is implemented. The application only runs as a WhatsApp client without any HTTP endpoints.
@@ -436,13 +437,23 @@ healthServer.listen(3000, () => {
 #### Time to Fix
 ~30 minutes
 
+#### Resolution
+Added native Node.js HTTP server to `src/index.ts` with three endpoints:
+- `GET /healthz` and `GET /health` - Liveness check (always 200 if process running)
+- `GET /readyz` - Readiness check (200 only if WhatsApp bot connected, 503 otherwise)
+
+Server listens on port 3000 (configurable via `HEALTH_PORT` env var).
+
+**Commit:** See fix commit below
+
 ---
 
 ### Issue #8: Missing Config Import in index.ts (HIGH)
 
 **Severity:** 🟠 HIGH (Runtime error)
-**Status:** UNRESOLVED
+**Status:** ✅ RESOLVED
 **Discovered:** 2025-12-11
+**Resolved:** 2025-12-11
 
 #### Description
 `src/index.ts:123` references `config.redis.enabled` but `config` is never imported in the file.
@@ -469,6 +480,14 @@ import config from "./config";
 
 #### Time to Fix
 ~5 minutes
+
+#### Resolution
+Added missing import to `src/index.ts`:
+```typescript
+import config from "./config";
+```
+
+**Commit:** See fix commit below
 
 ---
 
@@ -543,14 +562,14 @@ Option 2: ~1-2 hours (requires SpeechAPI integration)
 
 | Issue | Severity | Status | Time to Fix |
 |-------|----------|--------|-------------|
-| #7 Missing Health Check | CRITICAL | UNRESOLVED | 30 min |
-| #8 Missing Config Import | HIGH | UNRESOLVED | 5 min |
+| #7 Missing Health Check | CRITICAL | ✅ RESOLVED | 30 min |
+| #8 Missing Config Import | HIGH | ✅ RESOLVED | 5 min |
 | #9 Missing Speech Provider | MEDIUM | UNRESOLVED | 15 min |
 | #10 Unused LangChain Code | LOW | UNRESOLVED | 15 min |
 
-**Total Estimated Fix Time:** ~1 hour 5 minutes
+**Critical Issues Fixed:** Issues #7 and #8 resolved on 2025-12-11
 
-**Blocking for Production:** Issues #7 and #8 must be fixed before Docker deployment.
+**Remaining:** 2 non-blocking issues (Medium/Low priority)
 
 ---
 
